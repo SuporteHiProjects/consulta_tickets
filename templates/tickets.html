@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Tickets</title>
+    <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
+   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
+  <script src="static/scripts.js" defer></script>
+</head>
+<body>
+    <div class="ticket-details">
+        <table class="table table-sm table-hover">
+          <nav>
+  <div class="nav nav-tabs" id="nav-tab" role="tablist">
+    <button class="nav-link" id="nav-waitingTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-waitingTickets" type="button" role="tab" aria-controls="nav-waitingTickets" aria-selected="true">Aguardando Resposta</button>
+    <button class="nav-link" id="nav-allTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-allTickets" type="button" role="tab" aria-controls="nav-allTickets" aria-selected="true">Todos os tickets</button>
+    <button class="nav-link" id="nav-openedTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-openedTickets" type="button" role="tab" aria-controls="nav-openedTickets" aria-selected="false">Abertos</button>
+    <button class="nav-link" id="nav-contact-tab" data-bs-toggle="tab" data-bs-target="#nav-contact" type="button" role="tab" aria-controls="nav-contact" aria-selected="false">Finalizados</button>
+  </div>
+</nav>
+<div class="tab-content" id="nav-tabContent">
+  <div class="tab-pane fade" id="nav-waitingTickets" role="tabpanel" aria-labelledby="nav-waitingTickets-tab" tabindex="0">
+    {% for ticket in tickets %}
+    <!-- Aguardando resposta -->
+    {% if ticket.state.name == "Aguardando resposta" %}
+                <div class="list-group ticket-list" data-tab="waiting-tickets" onclick="redirectToTicketDetails('{{ ticket.id }}');">
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">#{{ ticket.number }}</h5>
+                      <small id="deadline_reference" class="text-body-secondary">{{ ticket.createDate_diference_days }} </small>
+                    </div>
+                    <p class="mb-1">{{ ticket.subject }}</p>
+                    <small class="text-body-secondary">{{ ticket.state.name }}</small>
+                  </a>
+                </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <div class="tab-pane fade show active" id="nav-allTickets" role="tabpanel" aria-labelledby="nav-allTickets-tab" tabindex="0">
+    {% for ticket in tickets %}
+    <!-- Todos os tickets -->
+                <div class="list-group ticket-list" data-tab="all-tickets" onclick="redirectToTicketDetails('{{ ticket.id }}');">
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">#{{ ticket.number }}</h5>
+                      <small id="deadline_reference" class="text-body-secondary">{{ ticket.createDate_diference_days }} </small>
+                    </div>
+                    <p class="mb-1">{{ ticket.subject }}</p>
+                    <small class="text-body-secondary">{{ ticket.state.name }}</small>
+                  </a>
+                </div>
+            {% endfor %}
+  </div>
+  <div class="tab-pane fade" id="nav-openedTickets" role="tabpanel" aria-labelledby="nav-openedTickets-tab" tabindex="0">
+    {% for ticket in tickets %}
+    <!-- Abertos -->
+    {% if ticket.state.name == "Aberto" or ticket.state.name == "Em andamento" or ticket.state.name == "Reaberto" %}
+                <div class="list-group ticket-list" data-tab="opened-tickets" onclick="redirectToTicketDetails('{{ ticket.id }}');">
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">#{{ ticket.number }}</h5>
+                      <small id="deadline_reference" class="text-body-secondary">{{ ticket.createDate_diference_days }} </small>
+                    </div>
+                    <p class="mb-1">{{ ticket.subject }}</p>
+                    <small class="text-body-secondary">{{ ticket.state.name }}</small>
+                  </a>
+                </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+  <div class="tab-pane fade" id="nav-contact" role="tabpanel" aria-labelledby="nav-contact-tab" tabindex="0">
+    {% for ticket in tickets %}
+    <!-- Finalizados -->
+    {% if ticket.state.name == "Finalizado" %}
+                <div class="list-group ticket-list" data-tab="finished-tickets" onclick="redirectToTicketDetails('{{ ticket.id }}');">
+                  <a href="#" class="list-group-item list-group-item-action">
+                    <div class="d-flex w-100 justify-content-between">
+                      <h5 class="mb-1">#{{ ticket.number }}</h5>
+                      <small id="deadline_reference" class="text-body-secondary">{{ ticket.createDate_diference_days }} </small>
+                    </div>
+                    <p class="mb-1">{{ ticket.subject }}</p>
+                    <small class="text-body-secondary">{{ ticket.state.name }}</small>
+                  </a>
+                </div>
+    {% endif %}
+    {% endfor %}
+  </div>
+</div>
+    </div>
+        </table>
+    </div>
+  <div class="render_data">
+    {% for ticket in tickets %}
+    <p class="ticket_identity">{{ticket}}</p>
+    {% endfor %}
+  </div>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+</body>
+</html>
