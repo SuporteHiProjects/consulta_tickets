@@ -144,8 +144,6 @@ def adicionar_anexos(ticket_id):
 
         if not anexos:
             return "Nenhum arquivo anexado."
-
-        # Parâmetros necessários
         userid = "d4386622-e980-48a5-9170-870d4e81c58e"  # ID do módulo
         publicAttach = True  # Define se os anexos são públicos ou privados.
 
