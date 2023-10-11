@@ -172,7 +172,6 @@ def adicionar_anexos(ticket_id):
 def criar_ticket():
     form = TicketForm()
     if request.method == 'POST' and form.validate_on_submit():
-        # Acessar os dados do formulário
         nome = form.nome.data
         email = form.email.data
         cc = form.cc.data
