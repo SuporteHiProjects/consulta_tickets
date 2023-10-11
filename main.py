@@ -8,12 +8,9 @@ import os
 import requests
 import datetime
 import time
-import pytz
 import json
 import app_data as function
 from forms import TicketForm
-
-# Testes
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -64,22 +61,13 @@ def ticket_details(ticket_id):
     }
     url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}"
     response = requests.get(url, headers=headers)
-
     if response.status_code == 200:
       ticket_details = response.json()
       description_html = ticket_details.get('description', '')
       ticket_details['description'] = description_html
       timestamp = ticket_details['deadline']
-      if timestamp != None:
-        deadline_utc = datetime.datetime.utcfromtimestamp(timestamp)
-        utc_timezone = pytz.timezone('UTC')
-        deadline_utc = utc_timezone.localize(deadline_utc)
-        brasil_timezone = pytz.timezone('America/Sao_Paulo')
-        deadline_brasil = deadline_utc.astimezone(brasil_timezone)
-        format_deadline_utc = deadline_brasil.strftime('%d/%m/%Y %H:%M')
-        ticket_details['deadline'] = format_deadline_utc
-      else:
-        ticket_details['deadline'] = "Sem registro"
+      fixSLA = function.fixTimezone(timestamp)
+      ticket_details['deadline'] = fixSLA
       comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
       comments_response = requests.get(comments_url, headers=headers)
       if comments_response.status_code == 200:

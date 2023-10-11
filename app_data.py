@@ -1,6 +1,20 @@
 import datetime
 import time
 import json
+import time
+import pytz
+
+def fixTimezone(timestamp):
+  if timestamp != None:
+      deadline_utc = datetime.datetime.utcfromtimestamp(timestamp)
+      utc_timezone = pytz.timezone('UTC')
+      deadline_utc = utc_timezone.localize(deadline_utc)
+      brasil_timezone = pytz.timezone('America/Sao_Paulo')
+      deadline_brasil = deadline_utc.astimezone(brasil_timezone)
+      format_deadline_utc = deadline_brasil.strftime('%d/%m/%Y %H:%M')
+      return format_deadline_utc
+  else:
+    return "Sem registro"
 
 def rounded_dates(ticketsData):
   for i in range(len(ticketsData)):
