@@ -98,19 +98,13 @@ td{
   cursor: pointer
 }
 
-/* Estilo para os cabeçalhos da tabela */
 .header-row {
-    /* Adicione os estilos que desejar aqui */
     background-color: #f0f0f0;
     font-weight: bold;
-    /* Outros estilos */
 }
 
-/* Evite que o efeito hover seja aplicado aos cabeçalhos da tabela */
 .table-hover tr:not(.header-row):hover {
-    /* Defina o estilo desejado para as linhas de ticket em hover */
     background-color: #e0e0e0;
-    /* Outros estilos */
 }
 
 .ticket-item{
@@ -205,4 +199,12 @@ td{
 
 .render_data{
   display: none;
+}
+
+#prevPage {
+  margin-right: 10px;
+}
+
+#nextPage {
+  margin-left: 10px;
 }

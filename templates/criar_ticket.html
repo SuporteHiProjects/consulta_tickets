@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Criar Ticket</title>
+</head>
+<body>
+    <h1>Criar Ticket</h1>
+    <form method="POST" enctype="multipart/form-data">
+        {{ form.hidden_tag() }}
+        <h2>Cabeçalho</h2>
+        <div>
+            Nome: {{ form.nome.label }} {{ form.nome() }}
+        </div>
+        <div>
+            E-mail: {{ form.email.label }} {{ form.email() }}
+        </div>
+        <div>
+            CC: {{ form.cc.label }} {{ form.cc() }}
+        </div>
+
+        <h2>Conteúdo</h2>
+        <div>
+            Assunto: {{ form.assunto.label }} {{ form.assunto() }}
+        </div>
+        <div>
+            Prioridade: {{ form.prioridade.label }} {{ form.prioridade() }}
+        </div>
+        <div>
+            Descrição: {{ form.descricao.label }} {{ form.descricao() }}
+        </div>
+        <div>
+            Anexo: {{ form.anexo.label }} {{ form.anexo() }}
+        </div>
+        <button type="submit">Enviar</button>
+    </form>
+</body>
+</html>

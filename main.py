@@ -1,4 +1,8 @@
-from flask import Flask, request, jsonify, render_template, redirect, url_for
+from flask_wtf import FlaskForm
+from wtforms import StringField, TextAreaField, SelectField, FileField
+from wtforms.validators import DataRequired, Email
+from flask import Flask, request, render_template, redirect, url_for, flash
+from flask_wtf.csrf import CSRFProtect
 import base64
 import os
 import requests
@@ -6,6 +10,8 @@ import datetime
 import time
 import pytz
 import json
+import app_data as function
+from forms import TicketForm
 
 app = Flask(__name__, static_url_path='/static')
 
@@ -35,30 +41,17 @@ def consulta_ticket():
         url = "https://tenant.directtalk.com.br/1.0/tenants?filter=dts1"
         response = requests.get(url, headers=headers)
         if response.status_code == 200:
-            headers1 = {
+          headers1 = {
                 'Authorization': Authorization
             }
-            url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
-            response1 = requests.get(url1, headers=headers1)
-            tickets = response1.json()
-            for i in range(len(tickets)):
-                reference_data = tickets[i]['creationDate']
-                date_now = time.time()
-                diference_in_seconds_with_dates = date_now - reference_data
-                diference_in_days_with_dates = diference_in_seconds_with_dates / (60 * 60 * 24)
-                rounded_diference = int(round(diference_in_days_with_dates))
-                if rounded_diference == 0:
-                  tickets[i]['createDate_diference_days'] = "Hoje"
-                elif rounded_diference == 1:
-                  tickets[i]['createDate_diference_days'] = "Ontem"
-                elif rounded_diference >= 2 and rounded_diference <= 30:
-                  tickets[i]['createDate_diference_days'] = "Há " + str(rounded_diference) + " dias"
-                elif rounded_diference > 30:
-                  tickets[i]['createDate_diference_days'] = "Há mais de um mês"
-            return render_template('tickets.html', tickets=tickets, )
+          url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+          response1 = requests.get(url1, headers=headers1)
+          tickets = response1.json()
+          tickets = function.rounded_dates(tickets)
+          tickets = function.slice_tickets(tickets)
+          return render_template('tickets.html', tickets=tickets)
         else:
             return render_template('login.html', message="Login inválido. Tente novamente.")
-
     return render_template('login.html')
 
 # Página de detalhes do ticket
@@ -171,6 +164,24 @@ def adicionar_anexos(ticket_id):
 
     else:
         return render_template('adicionar_anexos.html', ticket_id=ticket_id)
+
+
+
+# criar ticket
+@app.route('/criar_ticket', methods=['POST', 'GET'])
+def criar_ticket():
+    form = TicketForm()
+    if request.method == 'POST' and form.validate_on_submit():
+        # Acessar os dados do formulário
+        nome = form.nome.data
+        email = form.email.data
+        cc = form.cc.data
+        assunto = form.assunto.data
+        prioridade = form.prioridade.data
+        descricao = form.descricao.data
+        anexo = form.anexo.data
+
+    return render_template('criar_ticket.html', form=form)
 
 
 if __name__ == "__main__":

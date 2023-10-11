@@ -2,32 +2,79 @@ const loginButton = document.querySelector('#login_button');
 const loading_button = document.querySelector('#loading_button');
 const ticketDetails_button = document.querySelector('.list-group');
 const ticket_cards = document.querySelectorAll('.list-group');
-const ticket_identity = document.querySelectorAll('p.ticket_identity');
+// ticketsData -> var com todos os dados que chegam do jinja, pra ser usado aqui no js
 
-function printSelectedTabRecords(tabName) {
-    var selectedRecords = $(".ticket-list[data-tab='" + tabName + "']");
-    selectedRecords.each(function(index, element) {
-        console.log(element)
-    });
+const tabLinks = document.querySelectorAll('.nav-link');
+const prevPageBtn = document.getElementById('prevPage');
+const nextPageBtn = document.getElementById('nextPage');
+const itemsPerPage = 2;
+let currentPage = 0;
+
+function showPage(page) {
+  const visibleTickets = currentTabContent.querySelectorAll('.list-group.ticket-list');
+  visibleTickets.forEach((ticket, index) => {
+    if (index >= page * itemsPerPage && index < (page + 1) * itemsPerPage) {
+      ticket.style.display = 'block';
+    } else {
+      ticket.style.display = 'none';
+    }
+  });
 }
 
-$(".nav-link").click(function() {
-    var tabId = $(this).attr("aria-controls");
-    var tabName = $("#" + tabId + " .ticket-list:first").data("tab");
-    printSelectedTabRecords(tabName);
+function updatePageButtons() {
+  if (currentPage === 0) {
+    prevPageBtn.disabled = true;
+  } else {
+    prevPageBtn.disabled = false;
+  }
+
+  const visibleTickets = currentTabContent.querySelectorAll('.list-group.ticket-list');
+  if ((currentPage + 1) * itemsPerPage >= visibleTickets.length) {
+    nextPageBtn.disabled = true;
+  } else {
+    nextPageBtn.disabled = false;
+  }
+}
+
+function initializeTab(tabLink) {
+  const tabContentID = tabLink.getAttribute('data-bs-target');
+  currentTabContent = document.querySelector(tabContentID);
+  currentPage = 0;
+  showPage(currentPage);
+  updatePageButtons();
+}
+
+tabLinks.forEach((tabLink) => {
+  tabLink.addEventListener('click', (event) => {
+    event.preventDefault();
+    initializeTab(tabLink);
+  });
 });
 
-$(document).ready(function() {
-    $(".ticket-list").show();
-    $(".nav-link").click(function() {
-        $(".ticket-list").hide();
-        var tabId = $(this).attr("aria-controls");
-        $("#" + tabId + " .ticket-list").show();
-    });
+prevPageBtn.addEventListener('click', () => {
+  if (currentPage > 0) {
+    currentPage--;
+    showPage(currentPage);
+    updatePageButtons();
+  }
+});
+
+nextPageBtn.addEventListener('click', () => {
+  const visibleTickets = currentTabContent.querySelectorAll('.list-group.ticket-list');
+  if ((currentPage + 1) * itemsPerPage < visibleTickets.length) {
+    currentPage++;
+    showPage(currentPage);
+    updatePageButtons();
+  }
+});
+
+initializeTab(tabLinks[0]);
+
+document.addEventListener('DOMContentLoaded', function() {
+  console.log("OK");
 });
 
 loginButton.addEventListener('click', () => {
-  console.log("TESTE")
   loginButton.style.display = 'none';
   loading_button.style.display = 'block';
   var loginLabel = document.getElementById('login_label').value;
