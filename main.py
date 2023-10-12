@@ -1,7 +1,7 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, FileField
 from wtforms.validators import DataRequired, Email
-from flask import Flask, request, render_template, redirect, url_for, flash
+from flask import Flask, make_response, request, render_template, redirect, url_for, flash
 from flask_wtf.csrf import CSRFProtect
 import base64
 import os
@@ -19,12 +19,14 @@ busca_ticket_email = "tickets?desc=true"
 ticket_detail = "tickets/"
 Authorization = "Basic ZHRzMTg2ZTIzYWNkLTBiZDYtNGE4YS1iNTFlLWNiOGIzMWExZmI2ZTpkdnZic2tobTZhdHd0OWVscGNzdg=="
 
-# Página de login
 @app.route('/')
 def index():
     return render_template('login.html')
 
-# Página de consulta de tickets
+@app.route('/favicon.ico')
+def no_favicon():
+    return make_response("", 204)
+
 @app.route('/consulta_ticket', methods=['GET', 'POST'])
 def consulta_ticket():
     if request.method == 'POST':
@@ -53,7 +55,6 @@ def consulta_ticket():
             return render_template('login.html', message="Login inválido. Tente novamente.")
     return render_template('login.html')
 
-# Página de detalhes do ticket
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
 def ticket_details(ticket_id):
     headers = {
@@ -82,8 +83,6 @@ def ticket_details(ticket_id):
     else:
       return "Erro ao buscar detalhes do ticket."
 
-
-#Responder ticket
 @app.route('/responder_ticket/<string:ticket_id>', methods=['POST', 'GET'])
 def responder_ticket(ticket_id):
     if request.method == 'POST':

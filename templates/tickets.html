@@ -11,16 +11,16 @@
         <table class="table table-sm table-hover">
           <nav>
   <div class="nav nav-tabs" id="nav-tab" role="tablist">
-    <button class="nav-link" id="nav-waitingTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-waitingTickets" type="button" role="tab" aria-controls="nav-waitingTickets" aria-selected="true">Aguardando Resposta</button>
+    <button class="nav-link" id="nav-waitingTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-waitingTickets" type="button" role="tab" aria-controls="nav-waitingTickets" aria-selected="true">Aguardando Resposta <span id="waiting_count" class="badge text-bg-secondary"></span></button>
     <button class="nav-link" id="nav-openedTickets-tab" data-bs-toggle="tab" data-bs-target="#nav-openedTickets" type="button" role="tab" aria-controls="nav-openedTickets" aria-selected="false">Abertos</button>
     <button class="nav-link" id="nav-finished-tab" data-bs-toggle="tab" data-bs-target="#nav-finished" type="button" role="tab" aria-controls="nav-finished" aria-selected="false">Finalizados</button>
   </div>
 </nav>
 <div class="tab-content" id="nav-tabContent">
   <div class="tab-pane fade" id="nav-waitingTickets" role="tabpanel" aria-labelledby="nav-waitingTickets-tab" tabindex="0">
-    {% for ticket in tickets[1:] %}
     <!-- Aguardando resposta -->
-    {% if ticket.state.name == 'Aguardando resposta' %}
+    {% for ticket in tickets[1:] %}
+      {% if ticket.state.name == 'Aguardando resposta' %}
                 <div class="list-group ticket-list" data-tab="waiting-tickets" onclick="redirectToTicketDetails('{{ ticket.id }}');">
                   <a href="#" class="list-group-item list-group-item-action">
                     <div class="d-flex w-100 justify-content-between">
@@ -31,7 +31,7 @@
                     <small class="text-body-secondary">{{ ticket.state.name }}</small>
                   </a>
                 </div>
-    {% endif %}
+      {% endif %}
     {% endfor %}
   </div>
   <div class="tab-pane fade" id="nav-openedTickets" role="tabpanel" aria-labelledby="nav-openedTickets-tab" tabindex="0">
