@@ -208,3 +208,48 @@ td{
 #nextPage {
   margin-left: 10px;
 }
+
+.info_data, .info_headers {
+    margin: 0px;
+    color: rgba(0, 0, 0, 0.87);
+    font-weight: 100;
+    font-size: large;
+    line-height: 1.5;
+    letter-spacing: 0.15px;
+    font-family: 'Roboto';
+}
+
+.info_data {
+  margin-left: 16px;
+  color: rgb(117, 117, 117);
+  font-weight: 600;
+  font-size: medium;
+}
+
+.info_row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px; 
+  color: rgb(117, 117, 117);
+}
+
+.ticket_created,
+.ticket_mail,
+.ticket_group,
+.ticket_analyst {
+  width: 45%;
+  margin-right: 2px;
+}
+
+.ticket_subject{
+  font-weight: 900;
+  font-family: Tahoma, sans-serif;
+}
+
+.ticket_number{
+    color: #9E9E9E;
+    height: 24px;
+    font-size: 18px;
+    font-weight: 900;
+    vertical-align: bottom;
+}
