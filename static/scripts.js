@@ -1,4 +1,3 @@
-const loginButton = document.querySelector('#login_button');
 const loading_button = document.querySelector('#loading_button');
 const ticketDetails_button = document.querySelector('.list-group');
 const ticket_cards = document.querySelectorAll('.list-group');
@@ -70,26 +69,6 @@ nextPageBtn.addEventListener('click', () => {
 });
 
 initializeTab(tabLinks[0]);
-
-document.addEventListener('DOMContentLoaded', function() {
-});
-
-window.onload(function() {
-})
-
-loginButton.addEventListener('click', () => {
-  loginButton.style.display = 'none';
-  loading_button.style.display = 'block';
-  var loginLabel = document.getElementById('login_label').value;
-  var emailLabel = document.getElementById('email_label').value;
-  var pwdLabel = document.getElementById('pwd_label').value;
-  if(loginLabel == '' || emailLabel == '' || pwdLabel == ''){
-    setTimeout(() => {
-      loading_button.style.display = 'none';
-      loginButton.style.display = 'block';
-    }, 200);
-  }
-})
 
 function redirectToTicketDetails(ticketId) {
             window.location.href = `/ticket/${ticketId}`;
