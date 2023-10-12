@@ -41,12 +41,19 @@
   <div class="accordion-item">
     <h2 class="accordion-header">
       <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-        <strong>Detalhes</strong>
+        <strong>Detalhes <span class="position-absolute top-0 start-25 translate-middle badge rounded-pill bg-danger" id="total_interactions">5</span> </strong>
       </button>
     </h2>
     <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
       <div class="accordion-body">
+        <div class="alert alert-info">
         <p class="description">{{ ticket_details.description | safe }}</p>
+        </div>
+        {% for comment in comments %}
+            <div class="alert alert-warning">
+        <p class="description">{{ comment.content | safe }}</p>
+        </div>
+        {% endfor %}
       </div>
     </div>
   </div>
@@ -54,7 +61,8 @@
   <a href="javascript:history.back()" class="btn btn-primary" id="back-button">Voltar</a>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
   <script>
-    var ticketsDetails_data = "{{ ticket_details | tojson | safe }}";
+    var ticketsDetails_data =  {{ ticket_details | tojson | safe }};
+    var commentsData = {{ comments | tojson | safe }};
   </script>
 </body>
 </html>

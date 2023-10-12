@@ -1,14 +1,21 @@
 const loading_button = document.querySelector('#loading_button');
 const ticketDetails_button = document.querySelector('.list-group');
 const ticket_cards = document.querySelectorAll('.list-group');
-// ticketsData -> var com todos os dados que chegam do jinja, pra ser usado aqui no js
-// ticketsDetails_data -> var com todos os dados que chegam do jinja a respeito do ticketdetails
+// ticketsData 
+// ticketsDetails_data 
+// commentsData
 const tabLinks = document.querySelectorAll('.nav-link');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const stateField = document.querySelector('.ticket_state');
+const notification = document.querySelector('#total_interactions');
 const itemsPerPage = 2;
 let currentPage = 0;
+
+document.addEventListener('DOMContentLoaded', function() {
+  commentsData.length
+  console.log(commentsData.length)
+})
 
 function showPage(page) {
   const visibleTickets = currentTabContent.querySelectorAll('.list-group.ticket-list');
@@ -77,8 +84,6 @@ function redirectToTicketDetails(ticketId) {
 window.addEventListener('load', function() {
         const urlParts = window.location.pathname.split('/');
         const ticketId = urlParts[urlParts.length - 1];
-
-        console.log('ID do Ticket:', ticketId);
         if (ticketId) {
             loadTicketComments(ticketId);
         }

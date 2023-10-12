@@ -11,8 +11,8 @@ def fixTimezone(timestamp):
       deadline_utc = utc_timezone.localize(deadline_utc)
       brasil_timezone = pytz.timezone('America/Sao_Paulo')
       deadline_brasil = deadline_utc.astimezone(brasil_timezone)
-      format_deadline_utc = deadline_brasil.strftime('%d/%m/%Y %H:%M')
-      return format_deadline_utc
+      formated_data = deadline_brasil.strftime('%d/%m/%Y %H:%M')
+      return formated_data
   else:
     return "Sem registro"
 

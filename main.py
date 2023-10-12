@@ -72,6 +72,10 @@ def ticket_details(ticket_id):
       comments_response = requests.get(comments_url, headers=headers)
       if comments_response.status_code == 200:
         comments = comments_response.json()
+        comments.reverse()
+        for i in range(len(comments)):
+          fixData = function.fixTimezone(comments[i]['date'])
+          comments[i]['date'] = fixData
       else:
         comments = []
       return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments)
