@@ -3,10 +3,11 @@ const loading_button = document.querySelector('#loading_button');
 const ticketDetails_button = document.querySelector('.list-group');
 const ticket_cards = document.querySelectorAll('.list-group');
 // ticketsData -> var com todos os dados que chegam do jinja, pra ser usado aqui no js
-
+// ticketsDetails_data -> var com todos os dados que chegam do jinja a respeito do ticketdetails
 const tabLinks = document.querySelectorAll('.nav-link');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
+const stateField = document.querySelector('.ticket_state');
 const itemsPerPage = 2;
 let currentPage = 0;
 
@@ -71,8 +72,10 @@ nextPageBtn.addEventListener('click', () => {
 initializeTab(tabLinks[0]);
 
 document.addEventListener('DOMContentLoaded', function() {
-  console.log("OK");
 });
+
+window.onload(function() {
+})
 
 loginButton.addEventListener('click', () => {
   loginButton.style.display = 'none';

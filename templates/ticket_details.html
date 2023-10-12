@@ -20,6 +20,20 @@
         <div class="ticket_group"><i class="fa-solid fa-layer-group"></i> Grupo: {{ ticket_details.group.name }}</div>
         <div class="ticket_analyst"><i class="fa-solid fa-building-user"></i> Responsável: {{ ticket_details.responsible.name }}</div>
         </div>
+        <div class="info_row_footer">
+          {% if ticket_details.state.name == 'Finalizado' %}
+        <div class="ticket_finished">{{ ticket_details.state.name }}</div>
+          {% elif ticket_details.state.name == 'Aberto' %}
+        <div class="ticket_opened">{{ ticket_details.state.name }}</div>
+          {% elif ticket_details.state.name == 'Em andamento' %}
+        <div class="ticket_ongoing">{{ ticket_details.state.name }}</div>
+          {% elif ticket_details.state.name == 'Aguardando resposta' %}
+        <div class="ticket_waiting">{{ ticket_details.state.name }}</div>
+          {% elif ticket_details.state.name == 'Reaberto' %}
+        <div class="ticket_reopened">{{ ticket_details.state.name }}</div>
+          {% endif %}
+        <div class="ticket_sla"><i class="fa-solid fa-clock-rotate-left"></i> Prazo: {{ ticket_details.deadline }}</div>
+        </div>
       </div>
     </div>
   </div>
@@ -33,12 +47,14 @@
     <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
       <div class="accordion-body">
         <p class="description">{{ ticket_details.description | safe }}</p>
-        <p class="description">{{ ticket_details.description | safe }}</p>
       </div>
     </div>
   </div>
 </div>
   <a href="javascript:history.back()" class="btn btn-primary" id="back-button">Voltar</a>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+  <script>
+    var ticketsDetails_data = "{{ ticket_details | tojson | safe }}";
+  </script>
 </body>
 </html>

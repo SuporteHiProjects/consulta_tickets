@@ -226,19 +226,76 @@ td{
   font-size: medium;
 }
 
-.info_row {
+.info_row, .info_row_footer {
   display: flex;
   flex-wrap: wrap;
   gap: 2px; 
   color: rgb(117, 117, 117);
 }
 
+.info_row_footer{
+  font-size: smaller;
+  margin-top: 1%;
+  text-align-last: right;
+}
+
 .ticket_created,
 .ticket_mail,
 .ticket_group,
-.ticket_analyst {
+.ticket_analyst,
+.ticket_state,
+.ticket_sla {
   width: 45%;
   margin-right: 2px;
+}
+
+.ticket_sla{
+  text-align: right;
+  margin-left: 18.5%;
+  position: absolute;
+}
+
+.ticket_opened,
+.ticket_finished,
+.ticket_reopened,
+.ticket_waiting,
+.ticket_ongoing {
+    border: solid 1px #dff1da;
+    font-size: 11px;
+    font-weight: 900;
+    line-height: 1.27;
+    height: 20px;
+    display: flex;
+    padding: 13px 14px;
+    align-items: center;
+    border-radius: 4px;
+    letter-spacing: 1px;
+    text-transform: uppercase;
+    width: auto;
+}
+
+.ticket_finished {
+  color:#9e9e9e;
+  background-color: #e0e0e0;
+}
+.ticket_opened {
+  color:#60bb46;
+  background-color: #e3fee7;
+}
+
+.ticket_ongoing {
+  color:#f7a723;
+  background-color: rgba(247,167,35, .2);
+}
+
+.ticket_waiting {
+  color:#00aeef;
+  background-color: rgba(0, 174, 239, .2);
+}
+
+.ticket_reopened {
+  color:#60bb46;
+  background-color: #e3fee7;
 }
 
 .ticket_subject{
