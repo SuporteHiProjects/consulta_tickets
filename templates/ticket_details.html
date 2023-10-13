@@ -13,8 +13,8 @@
       <p><span class="ticket_subject">{{ ticket_details.subject }}</span><span class="ticket_number"> #{{ ticket_details.number }}</span></p>
       <div class="info_data">
         <div class="info_row">
-        <div class="ticket_created"><i class="fa-solid fa-address-card"></i> Criado por: {{ ticket_details.creationUser.name }}</div>
-        <div class="ticket_mail"><i class="fa-regular fa-envelope"></i> Enviado para: {{ ticket_details.number }}</div>
+        <div class="ticket_created"><i class="fa-solid fa-address-card"></i></div>
+        <div class="ticket_mail"><i class="fa-regular fa-envelope"></i></div>
         </div>
         <div class="info_row">
         <div class="ticket_group"><i class="fa-solid fa-layer-group"></i> Grupo: {{ ticket_details.group.name }}</div>
@@ -46,11 +46,11 @@
     </h2>
     <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
       <div class="accordion-body">
-        <div class="alert alert-warning">
+        <div class="alert alert-info">
         <p class="description">{{ ticket_details.description | safe }}</p>
         </div>
         {% for comment in comments %}
-            <div class="alert alert-info">
+            <div class="alert alert-primary">
         <p class="description">{{ comment.content | safe }}</p>
         </div>
         {% endfor %}
@@ -63,6 +63,7 @@
   <script>
     var ticketsDetails_data =  {{ ticket_details | tojson | safe }};
     var commentsData = {{ comments | tojson | safe }};
+    var emailsTransitData = {{ emailsData | tojson | safe }};
   </script>
 </body>
 </html>

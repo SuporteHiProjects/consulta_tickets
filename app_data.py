@@ -3,6 +3,35 @@ import time
 import json
 import time
 import pytz
+import requests
+
+def generateFenixToken():
+  url = "https://www3.directtalk.com.br/adminuiservices/api/Login"
+  payload = "{}"
+  headers = {
+  'Accept': 'application/json, text/plain, */*',
+  'Connection': 'keep-alive',
+  'Content-Type': 'application/json; charset=UTF-8',
+  'Authorization': 'Basic ZHRzMXdpbGxpYW0ud2VpZGdlbmFuZDozNDY2MTE3V3c='
+  }
+  response = requests.request("POST", url, headers=headers, data=payload)
+  tokenData = response.json()
+  token = tokenData['token']
+  return token
+
+def getEmailsTransitData(fenixToken, ticketId):
+  url = "https://app.hiplatform.com/agent/ticket/1.0/ticket/maininfos/" + ticketId
+  payload = {}
+  headers = {
+  'authority': 'app.hiplatform.com',
+  'accept': '*/*',
+  'accept-language': 'application/json',
+  'authorization': 'DT-Fenix-Token ' + fenixToken,
+  'content-type': 'application/json'
+  }
+  response = requests.request("GET", url, headers=headers, data=payload)
+  emailsTransitData = response.json()
+  return emailsTransitData
 
 def fixTimezone(timestamp):
   if timestamp != None:

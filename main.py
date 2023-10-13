@@ -79,7 +79,10 @@ def ticket_details(ticket_id):
           comments[i]['date'] = fixData
       else:
         comments = []
-      return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments)
+      fenixToken = function.generateFenixToken()
+      ticketId = ticket_details['id']
+      emailsData = function.getEmailsTransitData(fenixToken, ticketId)
+      return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments, fenixToken=fenixToken, emailsData=emailsData)
     else:
       return "Erro ao buscar detalhes do ticket."
 
