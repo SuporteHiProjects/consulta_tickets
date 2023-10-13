@@ -5,9 +5,11 @@ const stateField = document.querySelector('.ticket_state');
 const notification = document.querySelector('#total_interactions');
 const createdBy = document.querySelector('.ticket_created');
 const sendTo = document.querySelector('.ticket_mail');
+const returnButton = document.querySelector('#back-button');
 
 
 document.addEventListener("DOMContentLoaded", function() {
+  returnButton.textContent = '<<'
   total_interactions = commentsData.length + 1
   notification.innerHTML = total_interactions
   addressData = emailsTransitData['MailAddress']

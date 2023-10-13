@@ -5,10 +5,12 @@ const ticket_cards = document.querySelectorAll('.list-group');
 const tabLinks = document.querySelectorAll('.nav-link');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
+const progressBar = document.querySelector('.progressBar_details');
 const itemsPerPage = 2;
 let currentPage = 0;
 
 document.addEventListener("DOMContentLoaded", function () {
+  
   var countTickets = document.querySelectorAll(".list-group.ticket-list[data-tab='waiting-tickets']").length;
   if(countTickets == 0){
     document.querySelector('#nav-waitingTickets-tab').style.display = 'none';
@@ -78,5 +80,8 @@ nextPageBtn.addEventListener('click', () => {
 initializeTab(tabLinks[0]);
 
 function redirectToTicketDetails(ticketId) {
-            window.location.href = `/ticket/${ticketId}`;
+  prevPageBtn.style.display = 'none';
+  nextPageBtn.style.display = 'none';
+  progressBar.style.display = 'block';
+  window.location.href = `/ticket/${ticketId}`;
         }

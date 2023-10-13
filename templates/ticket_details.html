@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body>
+  <a href="javascript:history.back()" class="btn btn-outline-info" id="back-button"></a>
   <div class="alert alert-light" role="alert">
     <div class="info_headers">
       <p><span class="ticket_subject">{{ ticket_details.subject }}</span><span class="ticket_number"> #{{ ticket_details.number }}</span></p>
@@ -58,7 +59,6 @@
     </div>
   </div>
 </div>
-  <a href="javascript:history.back()" class="btn btn-primary" id="back-button">Voltar</a>
   <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
   <script>
     var ticketsDetails_data =  {{ ticket_details | tojson | safe }};

@@ -116,7 +116,6 @@ td{
 }
 
 #back-button{
-  float: right;
   margin-top: 0.5%;
 }
 
@@ -309,4 +308,13 @@ td{
     font-size: 18px;
     font-weight: 900;
     vertical-align: bottom;
+}
+
+.progress{
+  width: 12.5%
+}
+
+.progressBar_details{
+  display: none;
+  text-align: -webkit-center;
 }
