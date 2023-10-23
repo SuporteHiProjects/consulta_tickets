@@ -318,3 +318,35 @@ td{
   display: none;
   text-align: -webkit-center;
 }
+
+#nav-tab{
+  width: auto;
+}
+
+#new_ticket_button{
+  margin: auto;
+}
+
+#nav-newTicket-tab{
+  margin-left: auto;
+}
+
+.first_container_datas {
+  display: flex;
+  flex-direction: column;
+}
+
+.first_container_datas .form-control, #textArea_content {
+  margin-bottom: 10px;
+}
+
+#textArea_content{
+  margin-top: 10px;
+}
+
+.second_container_datas {
+  display: flex;
+  flex-direction: column;
+  margin-bottom: 10px;
+  margin-top: 20px;
+}

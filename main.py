@@ -2,7 +2,7 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, TextAreaField, SelectField, FileField
 from wtforms.validators import DataRequired, Email
 from flask import Flask, make_response, request, render_template, redirect, url_for, flash
-from flask_wtf.csrf import CSRFProtect
+from werkzeug.utils import secure_filename
 import base64
 import os
 import requests
@@ -13,11 +13,12 @@ import app_data as function
 from forms import TicketForm
 
 app = Flask(__name__, static_url_path='/static')
+app.config['SECRET_KEY'] = '12345'
 
 url_inbox = "https://api.directtalk.com.br/1.5/ticket/"
 busca_ticket_email = "tickets?desc=true"
 ticket_detail = "tickets/"
-Authorization = "Basic ZHRzMTg2ZTIzYWNkLTBiZDYtNGE4YS1iNTFlLWNiOGIzMWExZmI2ZTpkdnZic2tobTZhdHd0OWVscGNzdg=="
+Authorization = os.environ['Authorization Inbox']
 
 @app.route('/')
 def index():
@@ -67,8 +68,11 @@ def ticket_details(ticket_id):
       description_html = ticket_details.get('description', '')
       ticket_details['description'] = description_html
       timestamp = ticket_details['deadline']
+      createDate = ticket_details['creationDate']
       fixSLA = function.fixTimezone(timestamp)
+      fixCreateDate = function.fixTimezone(createDate)
       ticket_details['deadline'] = fixSLA
+      ticket_details['creationDate'] = fixCreateDate
       comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
       comments_response = requests.get(comments_url, headers=headers)
       if comments_response.status_code == 200:
@@ -90,23 +94,16 @@ def ticket_details(ticket_id):
 def responder_ticket(ticket_id):
     if request.method == 'POST':
         content = request.form['resposta']
-
-        # Requisição
         comment_data = {
             "id": ticket_id,
             "content": content,
             "DefaultCreatorId": "d4386622-e980-48a5-9170-870d4e81c58e"
         }
-
-        # URL para adicionar um comentário ao ticket
         add_comment_url = f"https://agent.directtalk.com.br/1.0/ticket/consumer/{ticket_id}/addcomment"
-
-        # Realizar POST
         headers = {
             'Content-Type': 'application/json',
             'Authorization': Authorization,
         }
-
         try:
             response = requests.post(add_comment_url, data=json.dumps(comment_data), headers=headers)
 
@@ -167,15 +164,13 @@ def adicionar_anexos(ticket_id):
 @app.route('/criar_ticket', methods=['POST', 'GET'])
 def criar_ticket():
     form = TicketForm()
-    if request.method == 'POST' and form.validate_on_submit():
-        nome = form.nome.data
-        email = form.email.data
-        cc = form.cc.data
-        assunto = form.assunto.data
-        prioridade = form.prioridade.data
-        descricao = form.descricao.data
-        anexo = form.anexo.data
-
+    if request.method == 'POST':
+      address = form.email.data
+      copyaddress = form.copyaddress.data
+      ticketTitle = form.ticketTitle.data
+      ticketContent = form.ticketContent.data
+      access_file = request.files['file']
+      print(access_file)
     return render_template('criar_ticket.html', form=form)
 
 
