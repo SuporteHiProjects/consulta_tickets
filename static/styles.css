@@ -323,12 +323,13 @@ td{
   width: auto;
 }
 
-#new_ticket_button{
-  margin: auto;
-}
-
-#nav-newTicket-tab{
+#newticket_button{
   margin-left: auto;
+  width: 50px;
+  height: 25px;
+  align-self: center;
+  font: revert;
+  margin-right: 1%;
 }
 
 .first_container_datas {
