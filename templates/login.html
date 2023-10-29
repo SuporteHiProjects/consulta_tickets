@@ -8,21 +8,40 @@
 </head>
 <body>
   <div class="loadig_window">
-    
+
   </div>
-    <div class="login-page">
+    <div class "login-page">
       <div class="form">
         <div class="login-container">
             <form class="login-form" method="POST" action="/consulta_ticket">
-                <input id="login_label" type="text" autocomplete="off" placeholder="Login (o mesmo que você usa na Hi)" name="login" required><br>
-                <input id="email_label" type="text" autocomplete="off" placeholder="E-mail utilizado para abrir os tickets" name="email" required><br>
-                <input id="pwd_label" type="password" placeholder="Senha (a mesma que você usa na Hi)" name="senha" required><br>
-                <button id="login_button" value="Login">login</button>
-                <button id="loading_button" class="btn btn-primary" type="button" disabled>
+
+              <!-- Adicione as opções de rádio acima dos campos de input -->
+              <input type="radio" id="supervisor" name="plataforma" value="Supervisor" required>
+              <label for="supervisor">Supervisor</label>
+
+              <input type="radio" id="flow" name="plataforma" value="Flow">
+              <label for="flow">Flow</label>
+
+              <input type="radio" id="yourviews" name="plataforma" value="Yourviews">
+              <label for="yourviews">Yourviews</label>
+
+              <input type="radio" id="social" name="plataforma" value="Social">
+              <label for="social">Social</label>
+
+              <!-- Adicione o campo para o código da empresa quando Flow estiver selecionado -->
+              <div id="empresa_codigo_field">
+                  <input type="text" id="empresa_codigo" name="empresa_codigo" placeholder="Código da Empresa">
+              </div>
+
+              <input id="login_label" type="text" autocomplete="off" placeholder="Login (o mesmo que você usa na Hi)" name="login"><br>
+              <input id="email_label" type="text" autocomplete="off" placeholder="E-mail utilizado para abrir os tickets" name="email" required><br>
+              <input id="pwd_label" type="password" placeholder="Senha (a mesma que você usa na Hi)" name="senha" required><br>
+              <button id="login_button" value="Login">login</button>
+              <button id="loading_button" class="btn btn-primary" type="button" disabled>
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
                 <span role="status">Acessando...</span>
-                </button>
-              
+              </button>
+
             </form>
           </div>
             {% if message %}

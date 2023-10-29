@@ -16,6 +16,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import werkzeug.utils
+import hashlib
 
 app = Flask(__name__, static_url_path='/static')
 app.config['SECRET_KEY'] = '12345'
@@ -37,29 +38,101 @@ def no_favicon():
 def consulta_ticket():
     if request.method == 'POST':
         data = request.form
+        plataforma = data['plataforma']
         login = data['login']
         email = data['email']
         senha = data['senha']
-        credentials = f"{login}:{senha}"
-        credentials_base64 = base64.b64encode(credentials.encode()).decode()
-        headers = {
-            'Authorization': f'Basic {credentials_base64}'
-        }
-        url = "https://tenant.directtalk.com.br/1.0/tenants?filter=dts1"
-        response = requests.get(url, headers=headers)
-        if response.status_code == 200:
-          headers1 = {
-                'Authorization': Authorization
+        empresa_codigo = data['empresa_codigo']
+
+        if plataforma == "Supervisor":
+            credentials = f"{login}:{senha}"
+            credentials_base64 = base64.b64encode(credentials.encode()).decode()
+            headers = {
+                'Authorization': f'Basic {credentials_base64}'
             }
-          url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
-          response1 = requests.get(url1, headers=headers1)
-          tickets = response1.json()
-          tickets = function.rounded_dates(tickets)
-          tickets = function.slice_tickets(tickets)
-          return render_template('tickets.html', tickets=tickets)
-        else:
+            url = "https://tenant.directtalk.com.br/1.0/tenants?filter=dts1"
+            response = requests.get(url, headers=headers)
+            if response.status_code == 200:
+                headers1 = {
+                    'Authorization': Authorization
+                }
+                url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+                response1 = requests.get(url1, headers=headers1)
+                tickets = response1.json()
+                tickets = function.rounded_dates(tickets)
+                tickets = function.slice_tickets(tickets)
+                return render_template('tickets.html', tickets=tickets)
+            else:
+                return render_template('login.html', message="Login inválido. Tente novamente.")
+
+        elif plataforma == "Flow":
+          empresa_codigo = data.get('empresa_codigo')
+          if not empresa_codigo:
+            return render_template('login.html', message="Código da empresa é obrigatório para o Flow.")
+
+          # Criptografe a senha em MD5
+          senha_md5 = hashlib.md5(senha.encode()).hexdigest()
+
+          # Realize a solicitação com os dados fornecidos
+          flow_login_url = 'http://app.akna.com.br/emkt/int/integracao.php'
+          flow_data = {
+              'User': email,
+              'Pass': senha_md5,
+              'Client': empresa_codigo
+          }
+          flow_response = requests.post(flow_login_url, data=flow_data)
+          if flow_response.status_code == 200:
+            headers1 = {
+              'Authorization': Authorization
+            }
+            url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+            response1 = requests.get(url1, headers=headers1)
+            tickets = response1.json()
+            tickets = function.rounded_dates(tickets)
+            tickets = function.slice_tickets(tickets)
+            return render_template('tickets.html', tickets=tickets)
+          elif flow_response.status_code == 401:
+            return render_template('login.html', message="Dados de acesso inválido, verifique se suas credenciais estão corretas e se você é um administrador Hi Flow")
+            
+
+        elif plataforma == "Yourviews":
+          # Lógica do login do Yourviews
+          yourviews_login_url = 'https://service.yourviews.com.br/admin/account/login?returnUrl=%2Fadmin%2FDashboard'
+          yourviews_headers = {
+              'Accept': 'application/xml',
+              'Content-Type': 'application/x-www-form-urlencoded'
+          }
+          yourviews_data = {
+              'username': email,
+              'password': senha,
+              'RememberMe': 'false'
+          }
+          yourviews_response = requests.post(yourviews_login_url, headers=yourviews_headers, data=yourviews_data)
+
+          if 'Dados inválidos' in yourviews_response.text:
+              return render_template('login.html', message="Dados de login Yourviews inválidos. Tente novamente.")
+          elif "Por favor, responda ao captcha abaixo" in yourviews_response.text:
+            return render_template('login.html', message="Excesso de tentativas incorretas. <br> Por favor, acesse sua plataforma de Yourviews, faça logout, em seguida, entre com as suas credenciais e preencha o captcha solicitado.")
+          elif 'Dados inválidos' not in yourviews_response.text:
+            headers1 = {
+              'Authorization': Authorization
+            }
+            url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+            response1 = requests.get(url1, headers=headers1)
+            tickets = response1.json()
+            tickets = function.rounded_dates(tickets)
+            tickets = function.slice_tickets(tickets)
+            return render_template('tickets.html', tickets=tickets)
+          else:
             return render_template('login.html', message="Login inválido. Tente novamente.")
+            
+
+        elif plataforma == "Social":
+            # Lógica do login Social
+            pass
+
     return render_template('login.html')
+
 
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
 def ticket_details(ticket_id):
