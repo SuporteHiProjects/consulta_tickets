@@ -351,3 +351,12 @@ td{
   margin-bottom: 10px;
   margin-top: 20px;
 }
+
+#add_new_comment{
+  float: right;
+  margin-top: 2%;
+}
+
+#tickets_details_container{
+  margin-top: 2%;
+}
