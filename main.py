@@ -43,7 +43,9 @@ def consulta_ticket():
         email = data['email']
         senha = data['senha']
         empresa_codigo = data['empresa_codigo']
+        plataforma_social = data['plataforma_social']
 
+      #CASO SEJA MÓDULO SUPERVISOR
         if plataforma == "Supervisor":
             credentials = f"{login}:{senha}"
             credentials_base64 = base64.b64encode(credentials.encode()).decode()
@@ -64,7 +66,8 @@ def consulta_ticket():
                 return render_template('tickets.html', tickets=tickets)
             else:
                 return render_template('login.html', message="Login inválido. Tente novamente.")
-
+              
+      #CASO SEJA FLOW
         elif plataforma == "Flow":
           empresa_codigo = data.get('empresa_codigo')
           if not empresa_codigo:
@@ -94,9 +97,8 @@ def consulta_ticket():
           elif flow_response.status_code == 401:
             return render_template('login.html', message="Dados de acesso inválido, verifique se suas credenciais estão corretas e se você é um administrador Hi Flow")
             
-
+      # CASO A PLATAFORMA SEJA YOURVIEWS
         elif plataforma == "Yourviews":
-          # Lógica do login do Yourviews
           yourviews_login_url = 'https://service.yourviews.com.br/admin/account/login?returnUrl=%2Fadmin%2FDashboard'
           yourviews_headers = {
               'Accept': 'application/xml',
@@ -126,10 +128,49 @@ def consulta_ticket():
           else:
             return render_template('login.html', message="Login inválido. Tente novamente.")
             
+    #CASO SEJA SOCIAL
+            if plataforma == "Social":
+              plataforma_social = data.get('plataforma_social')
+              if not plataforma_social:
+                  return render_template('login.html', message="O número da plataforma é obrigatório para o Social")
 
-        elif plataforma == "Social":
-            # Lógica do login Social
-            pass
+              # Mapear as URLs das plataformas
+              plataformas = {
+                  '1': 'https://plataforma1.seekr.com.br/login',
+                  '2': 'https://plataforma2.seekr.com.br/login',
+                  '3': 'https://plataforma3.seekr.com.br/login'
+              }
+
+              # Verificar se a plataforma é válida
+              if plataforma_social not in plataformas:
+                  print("Plataforma inválida")
+              else:
+                  # Configuração para iniciar uma janela de navegação privada (anônima)
+                  chrome_options = webdriver.ChromeOptions()
+                  chrome_options.add_argument("--incognito")
+
+                  # Inicialize o driver do Selenium com as configurações
+                  driver = webdriver.Chrome(options=chrome_options)
+
+                  try:
+                      driver.get(plataformas[plataforma_social])
+                      while "login" in driver.current_url:
+                          pass
+
+                      print("Login realizado com sucesso")
+                      url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+                      response1 = requests.get(url1, headers=headers1)
+                      tickets = response1.json()
+                      tickets = function.rounded_dates(tickets)
+                      tickets = function.slice_tickets(tickets)
+                      return render_template('tickets.html', tickets=tickets)
+
+                  except WebDriverException as e:
+                      print("A página foi fechada manualmente. O processo foi interrompido.")
+                      return render_template('login.html', message="Não foi possível realizar login através do Hi Social.")
+
+                  finally:
+                      driver.quit()
 
     return render_template('login.html')
 
