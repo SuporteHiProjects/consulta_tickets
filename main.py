@@ -196,7 +196,7 @@ def criar_ticket():
         copyaddress = form.copyaddress.data
         ticketTitle = form.ticketTitle.data
         ticketContent = form.ticketContent.data
-        access_file = request.files['file']
+        access_files = request.files.getlist('anexos[]')
 
         # Configurações de e-mail
         remetente = 'carlos.gomes@hiplatform.com'
@@ -220,37 +220,35 @@ def criar_ticket():
         corpo = ticketContent
         mensagem.attach(MIMEText(corpo, 'plain'))
 
-        if access_file:
-            anexo_arquivo = secure_filename(access_file.filename)
-            with open(anexo_arquivo, 'wb') as arquivo:
-                arquivo.write(access_file.read())
+        if access_files:
+            for anexo_file in access_files:
+                anexo_arquivo = secure_filename(anexo_file.filename)
+                with open(anexo_arquivo, 'wb') as arquivo:
+                    arquivo.write(anexo_file.read())
 
-            with open(anexo_arquivo, 'rb') as arquivo:
-                anexo = MIMEApplication(arquivo.read(), _subtype="pdf")
-                anexo.add_header('content-disposition', 'attachment', filename=anexo_arquivo)
-                mensagem.attach(anexo)
+                with open(anexo_arquivo, 'rb') as arquivo:
+                    anexo = MIMEApplication(arquivo.read(), _subtype="pdf")
+                    anexo.add_header('content-disposition', 'attachment', filename=anexo_arquivo)
+                    mensagem.attach(anexo)
 
-            # Conectar ao servidor SMTP
-            servidor_smtp = smtplib.SMTP('smtp.gmail.com', 587)
-            servidor_smtp.starttls()
-            servidor_smtp.login(remetente, senha)
+                # Excluir o arquivo após o envio
+                os.remove(anexo_arquivo)
 
-            # Montar a lista de destinatários, incluindo CC e CCO
-            destinatarios = [destinatario] + cc + cco
+        # Conectar ao servidor SMTP
+        servidor_smtp = smtplib.SMTP('smtp.gmail.com', 587)
+        servidor_smtp.starttls()
+        servidor_smtp.login(remetente, senha)
 
-            # Enviar o e-mail
-            servidor_smtp.sendmail(remetente, destinatarios, mensagem.as_string())
+        # Montar a lista de destinatários, incluindo CC e CCO
+        destinatarios = [destinatario] + cc + cco
 
-            # Encerrar a conexão
-            servidor_smtp.quit()
+        # Enviar o e-mail
+        servidor_smtp.sendmail(remetente, destinatarios, mensagem.as_string())
 
-            # Excluir o arquivo após o envio, se for desejado
-            os.remove(anexo_arquivo)
+        # Encerrar a conexão
+        servidor_smtp.quit()
 
-            print('E-mail com anexo enviado com sucesso!')
-        else:
-            # Trate o caso em que nenhum arquivo é enviado
-            print('E-mail enviado com sucesso (sem anexo)')
+        print('E-mail com anexos enviados com sucesso!')
 
     return render_template('criar_ticket.html', form=form)
 
