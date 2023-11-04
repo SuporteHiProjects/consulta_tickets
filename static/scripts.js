@@ -7,7 +7,7 @@ const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const progressBar = document.querySelector('.progressBar_details');
 
-const itemsPerPage = 5;
+const itemsPerPage = 3;
 let currentPage = 0;
 
 document.addEventListener("DOMContentLoaded", function () {

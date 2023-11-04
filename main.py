@@ -17,10 +17,15 @@ from email.mime.text import MIMEText
 from email.mime.application import MIMEApplication
 import werkzeug.utils
 import hashlib
+from werkzeug.datastructures import FileStorage
+import subprocess
+import os
+import logging
+from io import BytesIO
+
 
 app = Flask(__name__, static_url_path='/static')
 app.config['SECRET_KEY'] = '12345'
-
 url_inbox = "https://api.directtalk.com.br/1.5/ticket/"
 busca_ticket_email = "tickets?desc=true"
 ticket_detail = "tickets/"
@@ -38,14 +43,13 @@ def no_favicon():
 def consulta_ticket():
     if request.method == 'POST':
         data = request.form
-        plataforma = data['plataforma']
+        plataforma = data['product']
         login = data['login']
         email = data['email']
         senha = data['senha']
         empresa_codigo = data['empresa_codigo']
-        plataforma_social = data['plataforma_social']
+        plataforma_social = None
 
-      #CASO SEJA MÓDULO SUPERVISOR
         if plataforma == "Supervisor":
             credentials = f"{login}:{senha}"
             credentials_base64 = base64.b64encode(credentials.encode()).decode()
@@ -66,114 +70,65 @@ def consulta_ticket():
                 return render_template('tickets.html', tickets=tickets)
             else:
                 return render_template('login.html', message="Login inválido. Tente novamente.")
-              
-      #CASO SEJA FLOW
-        elif plataforma == "Flow":
-          empresa_codigo = data.get('empresa_codigo')
-          if not empresa_codigo:
-            return render_template('login.html', message="Código da empresa é obrigatório para o Flow.")
 
-          # Criptografe a senha em MD5
-          senha_md5 = hashlib.md5(senha.encode()).hexdigest()
+        elif plataforma == "HiFlow":
+            empresa_codigo = data.get('empresa_codigo')
+            if not empresa_codigo:
+                return render_template('login.html', message="Código da empresa é obrigatório para o Flow")
 
-          # Realize a solicitação com os dados fornecidos
-          flow_login_url = 'http://app.akna.com.br/emkt/int/integracao.php'
-          flow_data = {
-              'User': email,
-              'Pass': senha_md5,
-              'Client': empresa_codigo
-          }
-          flow_response = requests.post(flow_login_url, data=flow_data)
-          if flow_response.status_code == 200:
-            headers1 = {
-              'Authorization': Authorization
+            senha_md5 = hashlib.md5(senha.encode()).hexdigest()
+
+            flow_login_url = 'http://app.akna.com.br/emkt/int/integracao.php'
+            flow_data = {
+                'User': email,
+                'Pass': senha_md5,
+                'Client': empresa_codigo
             }
-            url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
-            response1 = requests.get(url1, headers=headers1)
-            tickets = response1.json()
-            tickets = function.rounded_dates(tickets)
-            tickets = function.slice_tickets(tickets)
-            return render_template('tickets.html', tickets=tickets)
-          elif flow_response.status_code == 401:
-            return render_template('login.html', message="Dados de acesso inválido, verifique se suas credenciais estão corretas e se você é um administrador Hi Flow")
-            
-      # CASO A PLATAFORMA SEJA YOURVIEWS
+            flow_response = requests.post(flow_login_url, data=flow_data)
+            if flow_response.status_code == 200:
+                headers1 = {
+                    'Authorization': Authorization
+                }
+                url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+                response1 = requests.get(url1, headers=headers1)
+                tickets = response1.json()
+                tickets = function.rounded_dates(tickets)
+                tickets = function.slice_tickets(tickets)
+                return render_template('tickets.html', tickets=tickets)
+            elif flow_response.status_code == 401:
+                return render_template('login.html', message="Dados de acesso inválido, verifique suas credenciais e se você é um administrador Hi Flow")
+
         elif plataforma == "Yourviews":
-          yourviews_login_url = 'https://service.yourviews.com.br/admin/account/login?returnUrl=%2Fadmin%2FDashboard'
-          yourviews_headers = {
-              'Accept': 'application/xml',
-              'Content-Type': 'application/x-www-form-urlencoded'
-          }
-          yourviews_data = {
-              'username': email,
-              'password': senha,
-              'RememberMe': 'false'
-          }
-          yourviews_response = requests.post(yourviews_login_url, headers=yourviews_headers, data=yourviews_data)
-
-          if 'Dados inválidos' in yourviews_response.text:
-              return render_template('login.html', message="Dados de login Yourviews inválidos. Tente novamente.")
-          elif "Por favor, responda ao captcha abaixo" in yourviews_response.text:
-            return render_template('login.html', message="Excesso de tentativas incorretas. <br> Por favor, acesse sua plataforma de Yourviews, faça logout, em seguida, entre com as suas credenciais e preencha o captcha solicitado.")
-          elif 'Dados inválidos' not in yourviews_response.text:
-            headers1 = {
-              'Authorization': Authorization
+            yourviews_login_url = 'https://service.yourviews.com.br/admin/account/login?returnUrl=%2Fadmin%2FDashboard'
+            yourviews_headers = {
+                'Accept': 'application/xml',
+                'Content-Type': 'application/x-www-form-urlencoded'
             }
-            url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
-            response1 = requests.get(url1, headers=headers1)
-            tickets = response1.json()
-            tickets = function.rounded_dates(tickets)
-            tickets = function.slice_tickets(tickets)
-            return render_template('tickets.html', tickets=tickets)
-          else:
-            return render_template('login.html', message="Login inválido. Tente novamente.")
-            
-    #CASO SEJA SOCIAL
-            if plataforma == "Social":
-              plataforma_social = data.get('plataforma_social')
-              if not plataforma_social:
-                  return render_template('login.html', message="O número da plataforma é obrigatório para o Social")
+            yourviews_data = {
+                'username': email,
+                'password': senha,
+                'RememberMe': 'false'
+            }
+            yourviews_response = requests.post(yourviews_login_url, headers=yourviews_headers, data=yourviews_data)
 
-              # Mapear as URLs das plataformas
-              plataformas = {
-                  '1': 'https://plataforma1.seekr.com.br/login',
-                  '2': 'https://plataforma2.seekr.com.br/login',
-                  '3': 'https://plataforma3.seekr.com.br/login'
-              }
-
-              # Verificar se a plataforma é válida
-              if plataforma_social not in plataformas:
-                  print("Plataforma inválida")
-              else:
-                  # Configuração para iniciar uma janela de navegação privada (anônima)
-                  chrome_options = webdriver.ChromeOptions()
-                  chrome_options.add_argument("--incognito")
-
-                  # Inicialize o driver do Selenium com as configurações
-                  driver = webdriver.Chrome(options=chrome_options)
-
-                  try:
-                      driver.get(plataformas[plataforma_social])
-                      while "login" in driver.current_url:
-                          pass
-
-                      print("Login realizado com sucesso")
-                      url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
-                      response1 = requests.get(url1, headers=headers1)
-                      tickets = response1.json()
-                      tickets = function.rounded_dates(tickets)
-                      tickets = function.slice_tickets(tickets)
-                      return render_template('tickets.html', tickets=tickets)
-
-                  except WebDriverException as e:
-                      print("A página foi fechada manualmente. O processo foi interrompido.")
-                      return render_template('login.html', message="Não foi possível realizar login através do Hi Social.")
-
-                  finally:
-                      driver.quit()
+            if 'Dados inválidos' in yourviews_response.text:
+                return render_template('login.html', message="Dados de login Yourviews inválidos. Tente novamente.")
+            elif "Por favor, responda ao captcha abaixo" in yourviews_response.text:
+                return render_template('login.html', message="Excesso de tentativas incorretas. <br> Acesse sua plataforma de Yourviews, faça logout, entre com suas credenciais e preencha o captcha solicitado.")
+            elif 'Dados inválidos' not in yourviews_response.text:
+                headers1 = {
+                    'Authorization': Authorization
+                }
+                url1 = url_inbox + busca_ticket_email + "&externaldata=email|" + email
+                response1 = requests.get(url1, headers=headers1)
+                tickets = response1.json()
+                tickets = function.rounded_dates(tickets)
+                tickets = function.slice_tickets(tickets)
+                return render_template('tickets.html', tickets=tickets)
+            else:
+                return render_template('login.html', message="Login inválido. Tente novamente.")
 
     return render_template('login.html')
-
 
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
 def ticket_details(ticket_id):
@@ -183,90 +138,123 @@ def ticket_details(ticket_id):
     url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}"
     response = requests.get(url, headers=headers)
     if response.status_code == 200:
-      ticket_details = response.json()
-      description_html = ticket_details.get('description', '')
-      ticket_details['description'] = description_html
-      timestamp = ticket_details['deadline']
-      createDate = ticket_details['creationDate']
-      fixSLA = function.fixTimezone(timestamp)
-      fixCreateDate = function.fixTimezone(createDate)
-      ticket_details['deadline'] = fixSLA
-      ticket_details['creationDate'] = fixCreateDate
-      comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
-      comments_response = requests.get(comments_url, headers=headers)
-      if comments_response.status_code == 200:
-        comments = comments_response.json()
-        comments.reverse()
-        for i in range(len(comments)):
-          fixData = function.fixTimezone(comments[i]['date'])
-          comments[i]['date'] = fixData
-      else:
-        comments = []
-      fenixToken = function.generateFenixToken()
-      ticketId = ticket_details['id']
-      emailsData = function.getEmailsTransitData(fenixToken, ticketId)
-      return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments, fenixToken=fenixToken, emailsData=emailsData)
+        ticket_details = response.json()
+        description_html = ticket_details.get('description', '')
+        ticket_details['description'] = description_html
+        timestamp = ticket_details['deadline']
+        createDate = ticket_details['creationDate']
+        fixSLA = function.fixTimezone(timestamp)
+        fixCreateDate = function.fixTimezone(createDate)
+        ticket_details['deadline'] = fixSLA
+        ticket_details['creationDate'] = fixCreateDate
+        comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
+        comments_response = requests.get(comments_url, headers=headers)
+        if comments_response.status_code == 200:
+            comments = comments_response.json()
+            comments.reverse()
+            for i in range(len(comments)):
+                fixData = function.fixTimezone(comments[i]['date'])
+                comments[i]['date'] = fixData
+        else:
+            comments = []
+        fenixToken = function.generateFenixToken()
+        ticketId = ticket_details['id']
+        emailsData = function.getEmailsTransitData(fenixToken, ticketId)
+        return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments, fenixToken=fenixToken, emailsData=emailsData)
     else:
-      return "Erro ao buscar detalhes do ticket."
+        return "Erro ao buscar detalhes do ticket."
 
-#responder ticket
-      @app.route('/responder_ticket/<string:ticket_id>', methods=['POST', 'GET'])
-      def responder_ticket(ticket_id):
-          if request.method == 'POST':
-              content = request.form['resposta']
-              anexos = request.files.getlist('anexos[]')  # Receba os anexos enviados
 
-              comment_data = {
-                  "id": ticket_id,
-                  "content": content,
-                  "DefaultCreatorId": "d4386622-e980-48a5-9170-870d4e81c58e"
-              }
+def enviar_anexos(ticket_id):
+  userid = "d4386622-e980-48a5-9170-870d4e81c58e"  # ID do módulo
+  publicAttach = True  # Define se os anexos são públicos ou privados.
+  
+  for anexo in request.files.getlist('new_comment_anexos[]'):
+      add_attachment_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments?userid={userid}&publicAttach={publicAttach}"
+  
+      headers = {
+          'Authorization': Authorization
+      }
+  
+      try:
+          file_stream = BytesIO()
+          file_stream.write(anexo.read())
+          file_stream.seek(0)  # Voltar ao início do fluxo
+  
+          files = {'file': (anexo.filename, file_stream)}
+          response = requests.post(add_attachment_url, files=files, headers=headers)
+  
+          if response.status_code != 201:
+              return "Erro ao adicionar anexo ao ticket na função de enviar anexos."
+      except Exception as e:
+          return f"Erro ao processar anexo: {str(e)}"
+  
+  return redirect(url_for('ticket_details', ticket_id=ticket_id))
 
-              add_comment_url = f"https://agent.directtalk.com.br/1.0/ticket/consumer/{ticket_id}/addcomment"
-              headers = {
-                  'Authorization': Authorization,
-              }
+def send_image_to_directtalk(image, ticket_id):
+  url = f'https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments?userid=d4386622-e980-48a5-9170-870d4e81c58e&publicAttach=True'
 
-              try:
-                  response = requests.post(add_comment_url, data=json.dumps(comment_data), headers=headers)
+  headers = {
+      'Authorization': Authorization
+  }
 
-                  if response.status_code == 200:
-                      if anexos:
-                          for anexo in anexos:
-                              # Lide com os anexos da mesma maneira que na função de criar tickets
-                              anexo_arquivo = secure_filename(anexo.filename)
-                              with open(anexo_arquivo, 'wb') as arquivo:
-                                  arquivo.write(anexo.read())
+  files = {
+      'image': (image.filename, image.stream)
+  }
 
-                              # Envie o anexo
-                              add_attachment_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments?userid={userid}&publicAttach={publicAttach}"
-                              headers = {
-                                  'Content-Type': 'multipart/form-data',
-                                  'Authorization': Authorization
-                              }
-                              files = {'file': (anexo_arquivo, open(anexo_arquivo, 'rb'))}
-                              response = requests.post(add_attachment_url, files=files, headers=headers)
+  response = requests.post(url, headers=headers, files=files)
 
-                              if response.status_code != 201:
-                                  return "Erro ao adicionar anexo ao ticket."
+  app.logger.info(f'Request URL: {url}')
+  app.logger.info(f'Response Status Code: {response.status_code}')
+  app.logger.info(f'Response Content: {response.text}')
 
-                              # Exclua o arquivo após o envio, se desejado
-                              os.remove(anexo_arquivo)
+  if response.status_code == 201:
+      return {'message': 'Imagem enviada com sucesso'}
+  else:
+      return {'error': 'Falha ao enviar a imagem'}
 
-                      return redirect(url_for('ticket_details', ticket_id=ticket_id))
-                  else:
-                      return "Erro ao responder ao ticket."
-              except Exception as e:
-                  return f"Erro ao responder ao ticket: {str(e)}"
 
-          else:
-              return render_template('responder_ticket.html', ticket_id=ticket_id)
+# responder ticket
+@app.route('/responder_ticket/<string:ticket_id>', methods=['POST', 'GET'])
+def responder_ticket(ticket_id):
+    if request.method == 'POST':
+        content = request.form['new_comment_content']
+        anexos = request.files.getlist('new_comment_anexos[]')  # Receba os anexos enviados
+        print(content)
+
+        comment_data = json.dumps({
+            "id": ticket_id,
+            "content": content,
+            "DefaultCreatorId": "d4386622-e980-48a5-9170-870d4e81c58e"
+        })
+
+        add_comment_url = f"https://agent.directtalk.com.br/1.0/ticket/consumer/{ticket_id}/addcomment"
+        headers = {
+            'Authorization': Authorization,
+            'content-type': 'application/json'
+        }
+
+        response = requests.post(add_comment_url, data=comment_data, headers=headers)
+
+        if response.status_code == 200:
+            print("ok")
+            print("Entrou", anexos)
+            file_storage = anexos[0]
+            if file_storage.filename.strip() != "":
+                return enviar_anexos(ticket_id)
+            else:
+                return redirect(url_for('ticket_details', ticket_id=ticket_id))
+        else:
+            print(response.status_code)
+            return "Erro ao responder ao ticket."
+
+    else:
+        return render_template('responder_ticket.html', ticket_id=ticket_id)
 
 # adicionar anexo
 @app.route('/adicionar_anexos/<string:ticket_id>', methods=['POST', 'GET'])
 def adicionar_anexos(ticket_id):
     if request.method == 'POST':
-
         if 'anexos[]' not in request.files:
             return "Nenhum arquivo anexado."
 
@@ -274,34 +262,16 @@ def adicionar_anexos(ticket_id):
 
         if not anexos:
             return "Nenhum arquivo anexado."
-        userid = "d4386622-e980-48a5-9170-870d4e81c58e"  # ID do módulo
-        publicAttach = True  # Define se os anexos são públicos ou privados.
 
         try:
-            for anexo in anexos:
-
-                add_attachment_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments?userid={userid}&publicAttach={publicAttach}"
-
-                headers = {
-                    'Content-Type': 'multipart/form-data',
-                    'Authorization': Authorization
-                }
-
-                files = {'file': (anexo.filename, anexo.stream.read())}
-                response = requests.post(add_attachment_url, files=files, headers=headers)
-
-                if response.status_code != 201:
-                    return "Erro ao adicionar anexo ao ticket."
-
-
-            return redirect(url_for('ticket_details', ticket_id=ticket_id))
+            return enviar_anexos(ticket_id, anexos)
         except Exception as e:
             return f"Erro ao adicionar anexos ao ticket: {str(e)}"
 
     else:
         return render_template('adicionar_anexos.html', ticket_id=ticket_id)
 
-  # criar ticket
+# criar ticket
 @app.route('/criar_ticket', methods=['POST', 'GET'])
 def criar_ticket():
     form = TicketForm()
@@ -335,19 +305,21 @@ def criar_ticket():
         mensagem.attach(MIMEText(corpo, 'plain'))
 
         if access_files:
-            for anexo_file in access_files:
-                anexo_arquivo = secure_filename(anexo_file.filename)
-                with open(anexo_arquivo, 'wb') as arquivo:
-                    arquivo.write(anexo_file.read())
+            print("Entrou", access_files)
+            file_storage = access_files[0]
+            if file_storage.filename.strip() != "":
+                for anexo_file in access_files:
+                    anexo_arquivo = secure_filename(anexo_file.filename)
+                    with open(anexo_arquivo, 'wb') as arquivo:
+                        arquivo.write(anexo_file.read())
 
-                with open(anexo_arquivo, 'rb') as arquivo:
-                    anexo = MIMEApplication(arquivo.read(), _subtype="pdf")
-                    anexo.add_header('content-disposition', 'attachment', filename=anexo_arquivo)
-                    mensagem.attach(anexo)
+                    with open(anexo_arquivo, 'rb') as arquivo:
+                        anexo = MIMEApplication(arquivo.read(), _subtype="pdf")
+                        anexo.add_header('content-disposition', 'attachment', filename=anexo_arquivo)
+                        mensagem.attach(anexo)
 
-                # Excluir o arquivo após o envio
-                os.remove(anexo_arquivo)
-
+                    # Excluir o arquivo após o envio
+                    os.remove(anexo_arquivo)
         # Conectar ao servidor SMTP
         servidor_smtp = smtplib.SMTP('smtp.gmail.com', 587)
         servidor_smtp.starttls()
@@ -367,4 +339,4 @@ def criar_ticket():
     return render_template('criar_ticket.html', form=form)
 
 if __name__ == "__main__":
-    app.run(host='0.0.0.0', debug=True)
+  app.run(host='0.0.0.0', port=8080, debug=True)

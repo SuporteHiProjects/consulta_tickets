@@ -15,13 +15,12 @@
   text-align: center;
   box-shadow: 0 0 20px 0 rgba(0, 0, 0, 0.2), 0 5px 5px 0 rgba(0, 0, 0, 0.24);
 }
-.form input {
+.form input, #plataforma_social {
   font-family: "Roboto", sans-serif;
   outline: 0;
   background: #f2f2f2;
   width: 100%;
   border: 0;
-  margin: 0 0 15px;
   padding: 15px;
   box-sizing: border-box;
   font-size: 14px;
@@ -343,6 +342,8 @@ td{
 
 #textArea_content{
   margin-top: 10px;
+  width: 100%;
+  height: 200px;
 }
 
 .second_container_datas {
@@ -359,4 +360,56 @@ td{
 
 #tickets_details_container{
   margin-top: 2%;
+}
+
+.navbar {
+    background-color: #00AEEE;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    width: 270px;
+    height: 40px;
+    border-radius: 10px;
+    box-shadow: 0 0 10px rgba(0, 0, 0, 0.2);
+}
+
+.nav-item {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    width: 100%;
+    height: 100%;
+}
+
+.nav-item li {
+    font-size: 11px;
+    color: white;
+    text-align: center;
+    cursor: pointer;
+    border-radius: 5px;
+    padding: 5px 10px;
+    transition: background-color 0.5s, color 0.3s;
+}
+
+
+.nav-item li:last-child {
+    margin-right: 0;
+}
+
+.nav-item li.active, .nav-item li:hover {
+    background-color: #006699;
+    color: white;
+}
+
+#radio_strip_channels{
+  margin-bottom: 10px;
+}
+
+.nav-item > .disabled_content,  .disabled_content:hover{
+  cursor: not-allowed;
+  background-color: #006699;
+  color: white;
 }

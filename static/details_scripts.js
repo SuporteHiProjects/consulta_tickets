@@ -6,6 +6,7 @@ const notification = document.querySelector('#total_interactions');
 const createdBy = document.querySelector('.ticket_created');
 const sendTo = document.querySelector('.ticket_mail');
 const returnButton = document.querySelector('#back-button');
+const addNewComment = document.querySelector('#add_new_comment');
 
 
 document.addEventListener("DOMContentLoaded", function() {
@@ -28,3 +29,8 @@ document.addEventListener("DOMContentLoaded", function() {
   };
   
 });
+
+
+addNewComment.addEventListener('click', function() {
+  
+})

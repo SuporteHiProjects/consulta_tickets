@@ -13,33 +13,27 @@
     <div class "login-page">
       <div class="form">
         <div class="login-container">
-            <form class="login-form" method="POST" action="/consulta_ticket">
-
-              <!-- Adicione as opções de rádio acima dos campos de input -->
-              <input type="radio" id="supervisor" name="plataforma" value="Supervisor" required>
-              <label for="supervisor">Supervisor</label>
-
-              <input type="radio" id="flow" name="plataforma" value="Flow">
-              <label for="flow">Flow</label>
-
-              <input type="radio" id="yourviews" name="plataforma" value="Yourviews">
-              <label for="yourviews">Yourviews</label>
-
-              <input type="radio" id="social" name="plataforma" value="Social">
-              <label for="social">Social</label>
-
-              <!-- Adicione o campo para o código da empresa quando Flow estiver selecionado -->
-              <div id="empresa_codigo_field">
-                  <input type="text" id="empresa_codigo" name="empresa_codigo" placeholder="Código da Empresa">
+            <form id="form_login" class="login-form" method="POST" action="/consulta_ticket">
+              <div id="radio_strip_channels" class="navbar">
+                  <ul class="nav-item">
+                    <li class="active" onclick="buttonClicked(this)">Supervisor</li>
+                    <li onclick="buttonClicked(this)">HiFlow</li>
+                    <li data-bs-toggle="tooltip" data-bs-placement="top" data-bs-title="Login via HiSocial desabilitado temporariamente" class="disabled_content" onclick="buttonClicked(this)">HiSocial</li>
+                    <li onclick="buttonClicked(this)">Yourviews</li>
+                  </ul>
               </div>
-
-              <div id="plataforma_social_field">
-                  <input type="text" id="plataforma_social" name="plataforma_social" placeholder="Informe a sua plataforma do Hi Social">
-              </div>
-
-              <input id="login_label" type="text" autocomplete="off" placeholder="Login (o mesmo que você usa na Hi)" name="login"><br>
+              <input type="hidden" name="product" id="selected_product" value="">
+              <input type="text" id="empresa_codigo" name="empresa_codigo" placeholder="Código da sua empresa">
+              <select class="form-select" id="plataforma_social" name="plataforma_social">
+                  <option value="" disabled selected>Plataforma do Hi Social</option>
+                  <option value="1">1</option>
+                  <option value="2">2</option>
+                  <option value="3">3</option>
+              </select>
+              
+              <input id="login_label" type="text" autocomplete="off" placeholder="Login (o mesmo da plataforma)" name="login"><br>
               <input id="email_label" type="text" autocomplete="off" placeholder="E-mail utilizado para abrir os tickets" name="email" required><br>
-              <input id="pwd_label" type="password" placeholder="Senha (a mesma que você usa na Hi)" name="senha" required><br>
+              <input id="pwd_label" type="password" placeholder="Senha (a mesma que você usa no produto Hi)" name="senha" required><br>
               <button id="login_button" value="Login">login</button>
               <button id="loading_button" class="btn btn-primary" type="button" disabled>
                 <span class="spinner-border spinner-border-sm" aria-hidden="true"></span>
@@ -53,5 +47,8 @@
             {% endif %}
         </div>
     </div>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.11.6/dist/umd/popper.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.min.js"></script>
 </body>
 </html>
