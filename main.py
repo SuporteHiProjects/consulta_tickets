@@ -33,6 +33,7 @@ Authorization = os.environ['Authorization Inbox']
 
 @app.route('/')
 def index():
+    print("OK")
     return render_template('login.html')
 
 @app.route('/favicon.ico')
@@ -48,7 +49,9 @@ def consulta_ticket():
         email = data['email']
         senha = data['senha']
         empresa_codigo = data['empresa_codigo']
-        plataforma_social = None
+
+        if plataforma == '':
+            plataforma = "Supervisor"
 
         if plataforma == "Supervisor":
             credentials = f"{login}:{senha}"
@@ -96,7 +99,7 @@ def consulta_ticket():
                 tickets = function.slice_tickets(tickets)
                 return render_template('tickets.html', tickets=tickets)
             elif flow_response.status_code == 401:
-                return render_template('login.html', message="Dados de acesso inválido, verifique suas credenciais e se você é um administrador Hi Flow")
+                return render_template('login.html', message="Dados de acesso inválidos, verifique suas credenciais e se você é um administrador Hi Flow")
 
         elif plataforma == "Yourviews":
             yourviews_login_url = 'https://service.yourviews.com.br/admin/account/login?returnUrl=%2Fadmin%2FDashboard'
@@ -127,7 +130,7 @@ def consulta_ticket():
                 return render_template('tickets.html', tickets=tickets)
             else:
                 return render_template('login.html', message="Login inválido. Tente novamente.")
-
+    print("retornou")
     return render_template('login.html')
 
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
