@@ -408,7 +408,7 @@ td{
   margin-bottom: 10px;
 }
 
-.nav-item > .disabled_content,  .disabled_content:hover{
+.nav-item > .disabled_content, .nav-item li:hover > .disabled_content:hover {
   cursor: not-allowed;
   background-color: lightsteelblue;
   color: white;

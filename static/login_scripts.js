@@ -4,6 +4,30 @@ const plataformaSocialInput = document.getElementById('plataforma_social');
 const loginLabelInput = document.getElementById('login_label');
 const emailLabelInput = document.getElementById('email_label');
 const pwdLabelInput = document.getElementById('pwd_label');
+let inputTimer;
+
+loginLabelInput.addEventListener('blur', function() {
+  if(loginLabelInput.value != '') {
+  clearTimeout(inputTimer);
+  inputTimer = setTimeout(function() {
+      if (!validateEmail(loginLabelInput.value)) {
+          document.getElementById('email_label').style.display = 'none';
+          emailLabelInput.value = loginLabelInput.value
+          console.log(emailLabelInput.value)
+      } else {
+          document.getElementById('email_label').style.display = 'block';
+      }
+  }, 200);
+}
+  else {
+        document.getElementById('email_label').style.display = 'none';
+    }
+});
+
+function validateEmail(email) {
+  const regex = /^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?(?:\.[a-zA-Z0-9](?:[a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?)*$/;
+  return !regex.test(String(email).toLowerCase());
+}
 
 $(document).ready(function(){
   $('[data-bs-toggle="tooltip"]').tooltip();
@@ -13,7 +37,7 @@ document.addEventListener('DOMContentLoaded', function () {
     empresaCodigoInput.style.display = 'None';
     plataformaSocialInput.style.display = 'None';
     loginLabelInput.style.display = 'block';
-    emailLabelInput.style.display = 'block';
+    emailLabelInput.style.display = 'none';
     pwdLabelInput.style.display = 'block';
     const navItems = document.querySelectorAll('.nav-item li');
     navItems.forEach(item => {
@@ -45,12 +69,14 @@ function buttonClicked(button) {
   buttons.forEach(btn => btn.classList.remove('active'));
   button.classList.add('active');
   const loginValue = button.textContent;
+  if(loginLabelInput.value === ''){
+    emailLabelInput.style.display = 'none';
+  }
   switch(loginValue){
     case "Supervisor":
       empresaCodigoInput.style.display = 'None';
       plataformaSocialInput.style.display = 'None';
       loginLabelInput.style.display = 'block';
-      emailLabelInput.style.display = 'block';
       pwdLabelInput.style.display = 'block';
       var form = document.getElementById("form_login")
       form.reset()
