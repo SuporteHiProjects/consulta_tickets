@@ -4,22 +4,28 @@ const plataformaSocialInput = document.getElementById('plataforma_social');
 const loginLabelInput = document.getElementById('login_label');
 const emailLabelInput = document.getElementById('email_label');
 const pwdLabelInput = document.getElementById('pwd_label');
+const validateLoginLoader = document.getElementById('validateLogin_field');
 let inputTimer;
 
 loginLabelInput.addEventListener('blur', function() {
+  validateLoginLoader.style.display = 'block'
   if(loginLabelInput.value != '') {
   clearTimeout(inputTimer);
   inputTimer = setTimeout(function() {
       if (!validateEmail(loginLabelInput.value)) {
+          validateLoginLoader.style.display = 'None'
           document.getElementById('email_label').style.display = 'none';
           emailLabelInput.value = loginLabelInput.value
-          console.log(emailLabelInput.value)
+          
       } else {
-          document.getElementById('email_label').style.display = 'block';
+        validateLoginLoader.style.display = 'None'
+        emailLabelInput.value = ''
+        document.getElementById('email_label').style.display = 'block';
       }
-  }, 200);
+  }, 1300);
 }
   else {
+        validateLoginLoader.style.display = 'None'
         document.getElementById('email_label').style.display = 'none';
     }
 });
@@ -34,6 +40,7 @@ $(document).ready(function(){
 });
 
 document.addEventListener('DOMContentLoaded', function () {
+    validateLoginLoader.style.display = 'None';
     empresaCodigoInput.style.display = 'None';
     plataformaSocialInput.style.display = 'None';
     loginLabelInput.style.display = 'block';

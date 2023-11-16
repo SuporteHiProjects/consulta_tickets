@@ -413,3 +413,8 @@ td{
   background-color: lightsteelblue;
   color: white;
 }
+
+#validateLogin_field{
+  position: absolute;
+  margin-left: 33.5%;
+}

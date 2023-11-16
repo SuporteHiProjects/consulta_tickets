@@ -30,8 +30,11 @@
                   <option value="2">2</option>
                   <option value="3">3</option>
               </select>
-              
+
+              <div class="login_fields">
               <input id="login_label" type="text" autocomplete="off" placeholder="Login (o mesmo da plataforma)" name="login"><br>
+              <span id="validateLogin_field" class="spinner-border spinner-border-sm" aria-hidden="true"></span>
+              </div>
               <input id="email_label" type="text" autocomplete="off" placeholder="E-mail utilizado para abrir os tickets" name="email" required><br>
               <input id="pwd_label" type="password" placeholder="Senha" name="senha" required><br>
               <button id="login_button" value="Login">login</button>
