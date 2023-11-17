@@ -434,7 +434,7 @@ def download_attachment(ticket_id, attachment_id):
       attachment_data = response.content
 
       # Obter a lista de anexos do ticket
-      attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments"
+      attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments/public"
       attachments_response = requests.get(attachments_url, headers=headers)
 
       if attachments_response.status_code == 200:
