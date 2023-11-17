@@ -22,6 +22,9 @@ import subprocess
 import os
 import logging
 from io import BytesIO
+from flask import send_file, Response
+import mimetypes
+
 
 
 app = Flask(__name__, static_url_path='/static')
@@ -203,6 +206,7 @@ def ticket_details(ticket_id):
     }
     url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}"
     response = requests.get(url, headers=headers)
+
     if response.status_code == 200:
         ticket_details = response.json()
         description_html = ticket_details.get('description', '')
@@ -213,8 +217,10 @@ def ticket_details(ticket_id):
         fixCreateDate = function.fixTimezone(createDate)
         ticket_details['deadline'] = fixSLA
         ticket_details['creationDate'] = fixCreateDate
+
         comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
         comments_response = requests.get(comments_url, headers=headers)
+
         if comments_response.status_code == 200:
             comments = comments_response.json()
             comments.reverse()
@@ -223,12 +229,23 @@ def ticket_details(ticket_id):
                 comments[i]['date'] = fixData
         else:
             comments = []
+
+        attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments"
+        attachments_response = requests.get(attachments_url, headers=headers)
+
+        if attachments_response.status_code == 200:
+            attachments_data = attachments_response.json()
+        else:
+            attachments_data = []
+
         fenixToken = function.generateFenixToken()
         ticketId = ticket_details['id']
         emailsData = function.getEmailsTransitData(fenixToken, ticketId)
-        return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments, fenixToken=fenixToken, emailsData=emailsData)
+
+        return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments, fenixToken=fenixToken, emailsData=emailsData, attachments=attachments_data)
     else:
         return "Erro ao buscar detalhes do ticket."
+
 
 
 def enviar_anexos(ticket_id):
@@ -403,6 +420,44 @@ def criar_ticket():
         print('E-mail com anexos enviados com sucesso!')
 
     return render_template('criar_ticket.html', form=form)
+
+
+@app.route('/download_attachment/<string:ticket_id>/<string:attachment_id>', methods=['GET'])
+def download_attachment(ticket_id, attachment_id):
+  headers = {
+      'Authorization': Authorization
+  }
+  url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments/{attachment_id}/content"
+  response = requests.get(url, headers=headers)
+
+  if response.status_code == 200:
+      attachment_data = response.content
+
+      # Obter a lista de anexos do ticket
+      attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments"
+      attachments_response = requests.get(attachments_url, headers=headers)
+
+      if attachments_response.status_code == 200:
+          attachments_data = attachments_response.json()
+      else:
+          attachments_data = []
+
+      # Encontrar o anexo correto com base no ID
+      attachment_info = next((att for att in attachments_data if att["id"] == attachment_id), None)
+
+      if attachment_info:
+          # Obter o nome original do arquivo da API
+          original_filename = attachment_info["name"]
+
+          # Define o nome do arquivo para download com a extensão correta
+          download_name = original_filename
+
+          return send_file(BytesIO(attachment_data), as_attachment=True, download_name=download_name)
+      else:
+          return "Error: Attachment not found."
+  else:
+      return "Error downloading attachment."
+
 
 if __name__ == "__main__":
   app.run(host='0.0.0.0', port=8080, debug=True)
