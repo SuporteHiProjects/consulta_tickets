@@ -39,19 +39,33 @@
         </div>
     </div>
 
-    <!-- Adicione esta seção ao seu template ticket_details.html -->
-    <h3>Anexos:</h3>
-    {% if attachments %}
-        <ul>
+<button type="button" id="attachmentsButton" class="btn btn-outline-primary mb-3 w-auto">Anexos</button>
+
+      <div class="modal fade" id="attachmentsModal" tabindex="-1" aria-labelledby="attachmentsModalLabel"
+    aria-hidden="true">
+    <div class="modal-dialog">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="attachmentsModalLabel">Anexos</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <!-- Lista de anexos -->
+          <ul id="attachmentsList">
             {% for attachment in attachments %}
-                <li>
-                    <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment['id']) }}" target="_blank">{{ attachment['name'] }}</a>
-                </li>
+            <li>
+              <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment['id']) }}"
+                target="_blank">{{ attachment['name'] }}</a>
+            </li>
             {% endfor %}
-        </ul>
-    {% else %}
-        <p>Nenhum anexo disponível.</p>
-    {% endif %}
+          </ul>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Fechar</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
     <div class="accordion" id="accordionExample">
         <div class="accordion-item">
@@ -112,5 +126,22 @@
         var commentsData = {{ comments | tojson | safe }};
         var emailsTransitData = {{ emailsData | tojson | safe }};
     </script>
+
+<script>
+  document.addEventListener('DOMContentLoaded', function () {
+    var attachmentsButton = document.getElementById('attachmentsButton');
+    var attachmentsModal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
+
+    attachmentsButton.addEventListener('click', function () {
+      attachmentsModal.show();
+    });
+
+    // Adiciona um ouvinte de evento para detectar o fechamento do modal
+    attachmentsModal._element.addEventListener('hidden.bs.modal', function () {
+      // Limpa o foco após fechar o modal para evitar que a tela permaneça escura
+      document.activeElement.blur();
+    });
+  });
+</script>
 </body>
 </html>
