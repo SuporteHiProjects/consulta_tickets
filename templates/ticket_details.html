@@ -91,7 +91,21 @@
         </div>
     </div>
 
-    <button type="button" id="add_new_comment" class="btn btn-success" data-bs-toggle="modal" data-bs-target="#addComment">Adicionar comentário</button>
+<button
+    type="button"
+    id="add_new_comment"
+    class="btn btn-success"
+    data-bs-toggle="modal"
+    data-bs-target="#addComment"
+    {% if ticket_details.state.name == 'Finalizado' %}disabled{% endif %}
+    {% if ticket_details.state.name == 'Finalizado' %}
+        data-bs-toggle="tooltip"
+        data-bs-placement="top"
+        title="Não é possível adicionar comentários a tickets finalizados"
+    {% endif %}
+>
+    Adicionar comentário
+</button>
     <!-- Modal -->
     <div class="modal fade" id="addComment" tabindex="-1" aria-labelledby="addCommentLabel" aria-hidden="true">
         <div class="modal-dialog">
@@ -142,6 +156,15 @@
       document.activeElement.blur();
     });
   });
+</script>
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        // Inicializa o tooltip se o botão estiver desativado (ticket finalizado)
+        var addCommentButton = document.getElementById('add_new_comment');
+        if (addCommentButton && addCommentButton.disabled) {
+            new bootstrap.Tooltip(addCommentButton);
+        }
+    });
 </script>
 </body>
 </html>
