@@ -419,6 +419,8 @@ def criar_ticket():
 
         print('E-mail com anexos enviados com sucesso!')
 
+        return redirect(url_for('consulta_ticket'))
+
     return render_template('criar_ticket.html', form=form)
 
 
