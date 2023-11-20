@@ -302,6 +302,7 @@ def send_image_to_directtalk(image, ticket_id):
 def responder_ticket(ticket_id):
     if request.method == 'POST':
         content = request.form['new_comment_content']
+        content = content.replace('\n', '\n')
         anexos = request.files.getlist('new_comment_anexos[]')  # Receba os anexos enviados
         print(content)
 

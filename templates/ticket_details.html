@@ -130,7 +130,7 @@
                                   Em {{ comment.date }}, {{ comment.user.name }} escreveu:
                               {% endif %}
                           </p>
-                          <p class="comment-content">{{ comment.content | safe }}</p>
+                        <p class="comment-content">{{ comment.content | replace('\n', '<br>') | safe }}</p>
                       </div>
                       {% endfor %}
                   </div>
