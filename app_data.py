@@ -4,20 +4,57 @@ import json
 import time
 import pytz
 import requests
+import os
+import base64
 
-def generateFenixToken():
-  url = "https://www3.directtalk.com.br/adminuiservices/api/Login"
+my_secret = os.environ['Authorization Inbox']
+
+def gen_supdt_basic():
+  url = "https://tenant.directtalk.com.br/1.0/user/hijack/dts1supdt"
   payload = "{}"
   headers = {
-  'Accept': 'application/json, text/plain, */*',
-  'Connection': 'keep-alive',
-  'Content-Type': 'application/json; charset=UTF-8',
-  'Authorization': 'Basic ZHRzMXdpbGxpYW0ud2VpZGdlbmFuZDozNDY2MTE3V3c='
+      'Authorization': my_secret
   }
-  response = requests.request("POST", url, headers=headers, data=payload)
-  tokenData = response.json()
-  token = tokenData['token']
+
+  try:
+      response = requests.get(url, headers=headers, data=payload)
+      response.raise_for_status()
+      response_content = response.text
+
+      if response_content is not None:
+          # Construir a string 'dts1supt:response'
+          basic_string = f"dts1supdt:{response_content}"
+
+          # Codificar a string para Base64
+          base64_encoded = base64.b64encode(basic_string.encode()).decode()
+          new_auth = f"Basic " + base64_encoded
+          print(new_auth)
+
+          # Chamar a função generateFenixToken() e obter o token
+          fenix_token = generateFenixToken(new_auth)
+          return fenix_token
+      else:
+          print("Não foi possível obter o response para gerar o Token Basic.")
+          return None
+  except requests.exceptions.HTTPError as err:
+      print(f"HTTP Error: {err}")
+      return None
+
+def generateFenixToken(new_auth):
+  url = "https://www3.directtalk.com.br/adminuiservices/api/Login"
+  payload = "{}"
+  
+  headers = {
+    'Accept': 'application/json',
+    'Content-Type': 'application/json',
+    'Authorization': new_auth
+  }
+  response = requests.post(url, headers=headers, data=payload)
+  token_data = response.json()
+  token = token_data['token']
   return token
+
+
 
 def getEmailsTransitData(fenixToken, ticketId):
   url = "https://app.hiplatform.com/agent/ticket/1.0/ticket/maininfos/" + ticketId

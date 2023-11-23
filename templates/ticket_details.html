@@ -118,13 +118,14 @@
                       <div class="comment comment-right">
                           <p class="comment-meta">Em {{ ticket_details.creationDate | safe }},
                               {{ emailsData.MailAddress[0].Address }} abriu o ticket e escreveu:</p>
-                          <p class="comment-content">{{ ticket_details.description | safe }}</p>
+                        <p class="comment-content">{{ ticket_details.description | safe }}</p>
+
                       </div>
                       {% for comment in comments %}
                       <div
-                          class="comment {% if comment.user.email or comment.user.name == 'Modulo Consumidor' %}comment-right{% else %}comment-left{% endif %}">
+                          class="comment {% if comment.user.email or comment.user.name == 'Supervisor' %}comment-right{% else %}comment-left{% endif %}">
                           <p class="comment-meta">
-                              {% if comment.user.name == 'Modulo Consumidor' %}
+                              {% if comment.user.name == 'Supervisor' %}
                                   Respondido via módulo consumidor em {{ comment.date }}
                               {% else %}
                                   Em {{ comment.date }}, {{ comment.user.name }} escreveu:

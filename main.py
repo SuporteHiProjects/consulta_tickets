@@ -36,7 +36,6 @@ Authorization = os.environ['Authorization Inbox']
 
 @app.route('/')
 def index():
-    print("OK")
     return render_template('login.html')
 
 @app.route('/favicon.ico')
@@ -113,6 +112,9 @@ def login():
 @app.route('/consulta_ticket', methods=['GET', 'POST'])
 def consulta_ticket():
     global plataforma, login, email, senha, empresa_codigo, data
+
+    if plataforma == '':
+      plataforma = "Supervisor"
 
     if plataforma == "Supervisor":
         credentials = f"{login}:{senha}"
@@ -195,8 +197,6 @@ def consulta_ticket():
             return render_template('login.html', message="Login inválido. Tente novamente.")
 
     return render_template('login.html')
-    print("retornou")
-
 
 
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
@@ -238,7 +238,7 @@ def ticket_details(ticket_id):
         else:
             attachments_data = []
 
-        fenixToken = function.generateFenixToken()
+        fenixToken = function.gen_supdt_basic()
         ticketId = ticket_details['id']
         emailsData = function.getEmailsTransitData(fenixToken, ticketId)
 
@@ -247,31 +247,30 @@ def ticket_details(ticket_id):
         return "Erro ao buscar detalhes do ticket."
 
 
-
 def enviar_anexos(ticket_id):
   userid = "d4386622-e980-48a5-9170-870d4e81c58e"  # ID do módulo
   publicAttach = True  # Define se os anexos são públicos ou privados.
-  
+
   for anexo in request.files.getlist('new_comment_anexos[]'):
       add_attachment_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments?userid={userid}&publicAttach={publicAttach}"
-  
+
       headers = {
           'Authorization': Authorization
       }
-  
+
       try:
           file_stream = BytesIO()
           file_stream.write(anexo.read())
           file_stream.seek(0)  # Voltar ao início do fluxo
-  
+
           files = {'file': (anexo.filename, file_stream)}
           response = requests.post(add_attachment_url, files=files, headers=headers)
-  
+
           if response.status_code != 201:
               return "Erro ao adicionar anexo ao ticket na função de enviar anexos."
       except Exception as e:
           return f"Erro ao processar anexo: {str(e)}"
-  
+
   return redirect(url_for('ticket_details', ticket_id=ticket_id))
 
 def send_image_to_directtalk(image, ticket_id):
@@ -302,58 +301,87 @@ def send_image_to_directtalk(image, ticket_id):
 def responder_ticket(ticket_id):
     if request.method == 'POST':
         content = request.form['new_comment_content']
-        content = content.replace('\n', '\n')
-        anexos = request.files.getlist('new_comment_anexos[]')  # Receba os anexos enviados
+        anexos = request.files.getlist('new_comment_anexos[]')  # Recebe os anexos enviados
         print(content)
+        fenixToken = function.gen_supdt_basic()
 
-        comment_data = json.dumps({
-            "id": ticket_id,
-            "content": content,
-            "DefaultCreatorId": "d4386622-e980-48a5-9170-870d4e81c58e"
-        })
+        attachments_data = []
+        for anexo in anexos:
+            attachment_response = enviar_anexo(anexo, fenixToken)
+            attachments_data.append(attachment_response)
 
-        add_comment_url = f"https://agent.directtalk.com.br/1.0/ticket/consumer/{ticket_id}/addcomment"
+        comment_data = {
+            "PublicComment": True,
+            "Attachments": attachments_data,
+            "Comment": content,
+            "UserId": "d4386622-e980-48a5-9170-870d4e81c58e"
+        }
+
+        add_comment_url = f"https://app.hiplatform.com/agent/ticket/1.0/ticket/{ticket_id}/comment"
         headers = {
-            'Authorization': Authorization,
+            'Authorization': 'DT-Fenix-Token ' + fenixToken,
             'content-type': 'application/json'
         }
 
-        response = requests.post(add_comment_url, data=comment_data, headers=headers)
+        response = requests.put(add_comment_url, json=comment_data, headers=headers)
 
         if response.status_code == 200:
-            print("ok")
-            print("Entrou", anexos)
-            file_storage = anexos[0]
-            if file_storage.filename.strip() != "":
-                return enviar_anexos(ticket_id)
-            else:
-                return redirect(url_for('ticket_details', ticket_id=ticket_id))
+            print("Ok, alterando o status do ticket")
+            change_status_url = f"https://app.hiplatform.com/agent/ticket/1.0/ticket/{ticket_id}"
+            change_status_data = {"StateId": "85778fdb-fb31-11e4-83fb-122473ed82c1", "UserId": "d4386622-e980-48a5-9170-870d4e81c58e"}
+          
+            change_status_headers = {
+              'Authorization': 'DT-Fenix-Token ' + fenixToken,
+              'content-type': 'application/json'
+            }
+
+            response_change_status = requests.put(change_status_url, json=change_status_data, headers=change_status_headers)
+
+          
+            return redirect(url_for('ticket_details', ticket_id=ticket_id))
         else:
             print(response.status_code)
-            return "Erro ao responder ao ticket."
-
+            print(response.text)  # Printa resposta
+            abort(response.status_code)  # Aborta a solicitação com o código de status da resposta
     else:
-        return render_template('responder_ticket.html', ticket_id=ticket_id)
+        return "Método não permitido", 405
+
+
+def enviar_anexo(anexo, fenix_token):
+    add_attachment_url = "https://app.hiplatform.com/agent/ticket/1.0/ticket/attachment"
+    headers = {
+        'Authorization': 'DT-Fenix-Token ' + fenix_token,
+    }
+
+    files = {'file': (anexo.filename, anexo)}
+
+    response = requests.post(add_attachment_url, files=files, headers=headers)
+
+    if response.status_code == 200:
+        return response.json()
+    else:
+        print(response.status_code)
+        return {}
 
 # adicionar anexo
-@app.route('/adicionar_anexos/<string:ticket_id>', methods=['POST', 'GET'])
-def adicionar_anexos(ticket_id):
-    if request.method == 'POST':
-        if 'anexos[]' not in request.files:
-            return "Nenhum arquivo anexado."
+#@app.route('/adicionar_anexos/<string:ticket_id>', methods=['POST', 'GET'])
+#def adicionar_anexos(ticket_id):
+#    if request.method == 'POST':
+#        if 'anexos[]' not in request.files:
+#            return "Nenhum arquivo anexado."
 
-        anexos = request.files.getlist('anexos[]')
+#        anexos = request.files.getlist('anexos[]')
 
-        if not anexos:
-            return "Nenhum arquivo anexado."
+#        if not anexos:
+#            return "Nenhum arquivo anexado."
 
-        try:
-            return enviar_anexos(ticket_id, anexos)
-        except Exception as e:
-            return f"Erro ao adicionar anexos ao ticket: {str(e)}"
+#        try:
+#            return enviar_anexos(ticket_id, anexos)
+#        except Exception as e:
+#            return f"Erro ao adicionar anexos ao ticket: {str(e)}"
 
-    else:
-        return render_template('adicionar_anexos.html', ticket_id=ticket_id)
+#    else:
+#        return render_template('adicionar_anexos.html', ticket_id=ticket_id)
 
 # criar ticket
 @app.route('/criar_ticket', methods=['POST', 'GET'])
@@ -404,6 +432,7 @@ def criar_ticket():
 
                     # Excluir o arquivo após o envio
                     os.remove(anexo_arquivo)
+                  
         # Conectar ao servidor SMTP
         servidor_smtp = smtplib.SMTP('smtp.gmail.com', 587)
         servidor_smtp.starttls()

@@ -1,11 +1,20 @@
 const loginButton = document.querySelector('#login_button');
-const empresaCodigoInput = document.getElementById('empresa_codigo');
+const empresaCodigoInput = document.querySelector('.flow_datas_info');
 const plataformaSocialInput = document.getElementById('plataforma_social');
 const loginLabelInput = document.getElementById('login_label');
 const emailLabelInput = document.getElementById('email_label');
 const pwdLabelInput = document.getElementById('pwd_label');
 const validateLoginLoader = document.getElementById('validateLogin_field');
 let inputTimer;
+
+$(document).ready(function () {
+    $('#flow_code_info').tooltip({
+        title: 'Caso não tenha o código da empresa, entre em contato com nosso time de atendimento.',
+        placement: 'right',
+        trigger: 'hover'
+    });
+});
+
 
 loginLabelInput.addEventListener('blur', function() {
   validateLoginLoader.style.display = 'block'
@@ -101,7 +110,7 @@ function buttonClicked(button) {
       //document.getElementById('selected_product').value = loginValue;
       break
     case "HiFlow":
-      empresaCodigoInput.style.display = 'block';
+      empresaCodigoInput.style.display = 'flex';
       plataformaSocialInput.style.display = 'None';
       loginLabelInput.style.display = 'None';
       emailLabelInput.style.display = 'block';
