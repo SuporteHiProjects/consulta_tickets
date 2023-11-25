@@ -6,12 +6,15 @@ const tabLinks = document.querySelectorAll('.nav-link');
 const prevPageBtn = document.getElementById('prevPage');
 const nextPageBtn = document.getElementById('nextPage');
 const progressBar = document.querySelector('.progressBar_details');
-
+var session_token = ''
 const itemsPerPage = 3;
 let currentPage = 0;
 
 document.addEventListener("DOMContentLoaded", function () {
-  
+
+  var url = new URL(window.location.href);
+  session_token = url.searchParams.get('token');
+  console.log(session_token);
   var countTickets = document.querySelectorAll(".list-group.ticket-list[data-tab='waiting-tickets']").length;
   if(countTickets == 0){
     document.querySelector('#nav-waitingTickets-tab').style.display = 'none';
@@ -84,6 +87,7 @@ function redirectToTicketDetails(ticketId) {
   prevPageBtn.style.display = 'none';
   nextPageBtn.style.display = 'none';
   progressBar.style.display = 'block';
+  
   window.location.href = `/ticket/${ticketId}`;
         }
 
@@ -91,5 +95,5 @@ function createNewTicket(){
   prevPageBtn.style.display = 'none';
   nextPageBtn.style.display = 'none';
   progressBar.style.display = 'block';
-  window.location.href = `/criar_ticket`;
+  window.location.href = `/criar_ticket?token=${session_token}`;
 }

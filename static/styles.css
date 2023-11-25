@@ -430,3 +430,49 @@ td{
 .tooltip-inner {
    font-size: 10px;
 }
+
+.buttons_command_painel{
+  display: flex;
+  margin-left: auto;
+}
+
+#refresh_button {
+    margin-right: 5%;
+    border: none !important;
+    outline: none;
+    background-color: transparent;
+    cursor: pointer;
+}
+
+.new_comment_container{
+  margin-top: 2%;
+}
+
+.comments-container {
+    display: flex;
+    flex-direction: column;
+    max-width: 100%; /* Largura máxima para a área de comentários */
+    margin-left: auto; /* Centralizar a área de comentários na tela */
+    margin-right: auto;
+}
+
+.comment-right {
+    align-self: flex-end;
+    max-width: 85%;
+    background-color: #cee3fb; /* Cor de fundo para comentários originados de e-mails */
+    padding: 10px; /* Adiciona espaçamento interno */
+    margin-bottom: 10px; /* Adiciona margem inferior para separar os blocos */
+}
+
+.comment-left {
+    align-self: flex-start;
+    max-width: 85%;
+    background-color: #CCD9DE; /* Cor de fundo para comentários de usuários sem e-mail */
+    padding: 10px; /* Adiciona espaçamento interno */
+    margin-bottom: 10px; /* Adiciona margem inferior para separar os blocos */
+}
+
+.comment-meta {
+    font-weight: bold;
+}
+

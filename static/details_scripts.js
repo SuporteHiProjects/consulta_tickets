@@ -14,7 +14,6 @@ document.addEventListener("DOMContentLoaded", function() {
   total_interactions = commentsData.length + 1
   notification.innerHTML = total_interactions
   addressData = emailsTransitData['MailAddress']
-  console.log(addressData)
   for (var i = 0; i < addressData.length; i++) {
     switch(addressData[i]['Type']){
       case 'CC':
@@ -30,7 +29,25 @@ document.addEventListener("DOMContentLoaded", function() {
   
 });
 
+document.addEventListener('DOMContentLoaded', function () {
+  var attachmentsButton = document.getElementById('attachmentsButton');
+  var attachmentsModal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
 
-addNewComment.addEventListener('click', function() {
+  attachmentsButton.addEventListener('click', function () {
+    attachmentsModal.show();
+  });
+
+  // Adiciona um ouvinte de evento para detectar o fechamento do modal
+  attachmentsModal._element.addEventListener('hidden.bs.modal', function () {
+    // Limpa o foco após fechar o modal para evitar que a tela permaneça escura
+    document.activeElement.blur();
+  });
+});
   
-})
+document.addEventListener('DOMContentLoaded', function () {
+      // Inicializa o tooltip se o botão estiver desativado (ticket finalizado)
+      var addCommentButton = document.getElementById('add_new_comment');
+      if (addCommentButton && addCommentButton.disabled) {
+          new bootstrap.Tooltip(addCommentButton);
+      }
+  });
