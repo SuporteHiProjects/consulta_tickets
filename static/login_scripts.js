@@ -6,6 +6,7 @@ const emailLabelInput = document.getElementById('email_label');
 const pwdLabelInput = document.getElementById('pwd_label');
 const validateLoginLoader = document.getElementById('validateLogin_field');
 let inputTimer;
+const testeBranch = ''
 
 $(document).ready(function () {
     $('#flow_code_info').tooltip({
