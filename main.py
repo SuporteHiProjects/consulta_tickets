@@ -2,6 +2,7 @@ from imports import *
 
 
 app = Flask(__name__, static_url_path='/static')
+app.logger.setLevel(logging.CRITICAL)
 app.config['SECRET_KEY'] = '12345'
 url_inbox = "https://api.directtalk.com.br/1.5/ticket/"
 busca_ticket_email = "tickets?desc=true"
@@ -13,7 +14,6 @@ Authorization = os.environ['Authorization Inbox']
 def index():
     return render_template('login.html')
 
-
 @app.route('/favicon.ico')
 def no_favicon():
     return make_response("", 204)
@@ -23,6 +23,8 @@ def generate_token(user_data):
     token = jwt.encode(user_data, app.config['SECRET_KEY'], algorithm='HS256')
     return token
 
+
+#LOGIN
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     #global plataforma, login, email, senha, empresa_codigo, data
@@ -99,6 +101,7 @@ def login():
                 return redirect(url_for('consulta_ticket', token=token))
 
 
+#LISTAGEM DE TICKETS
 @app.route('/consulta_ticket', methods=['GET', 'POST'])
 def consulta_ticket():
     token = request.args.get('token')
@@ -114,7 +117,7 @@ def consulta_ticket():
     email = user_data.get('email')
     empresa_codigo = user_data.get('empresa_codigo')
     senha = user_data.get('senha')
-    print('Aqui estão dos dados da sessão' + plataforma, login, email, senha, empresa_codigo)
+    #print('Aqui estão dos dados da sessão' + plataforma, login, email, senha, empresa_codigo)
 
     headers1 = {
         'Authorization': Authorization
@@ -126,8 +129,13 @@ def consulta_ticket():
     tickets = function.slice_tickets(tickets)
     return render_template('tickets.html', tickets=tickets, token=token)
 
+# TICKET DETAILS
 @app.route('/ticket/<string:ticket_id>', methods=['GET'])
 def ticket_details(ticket_id):
+  
+    fenixToken = function.gen_supdt_basic()
+    #print(fenixToken)
+
     headers = {
         'Authorization': Authorization
     }
@@ -145,43 +153,131 @@ def ticket_details(ticket_id):
         ticket_details['deadline'] = fixSLA
         ticket_details['creationDate'] = fixCreateDate
 
-        comments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/comments/public"
-        comments_response = requests.get(comments_url, headers=headers)
+        comments_url = f"https://app.hiplatform.com/agent/ticket/1.0/ticket/changes/{ticket_id}?pageNumber=1"
+        headers2 = {
+            'Authorization': 'DT-Fenix-Token ' + fenixToken,
+            'content-type': 'application/json'
+        }
+        comments_response = requests.get(comments_url, headers=headers2)
+
+        comments = []  # Inicialize a variável comments aqui
 
         if comments_response.status_code == 200:
-            comments = comments_response.json()
-            comments.reverse()
-            for i in range(len(comments)):
-                fixData = function.fixTimezone(comments[i]['date'])
-                comments[i]['date'] = fixData
+            comments_data = comments_response.json().get('Items', [])
+            comments_id = [item.get('Id') for item in comments_data]
+            
+            #print(comments_id)
+
+            filtered_comments = []
+
+            for comment_id in comments_id:
+              #print(f"\nDetails for comment ID: {comment_id}")
+  
+              comment = next((item for item in comments_data if item.get('Id') == comment_id), None)
+  
+              if comment:
+                  # IsPublic
+                  #print(f"IsPublic: {comment.get('IsPublic')}")
+  
+                  # UserName
+                  #print(f"UserName: {comment.get('UserName')}")
+  
+                  # UserType
+                  #print(f"UserType: {comment.get('UserType')}")
+  
+                  # ChangeDate
+                  change_date_str = comment.get('ChangeDate')
+                  if change_date_str:
+                    change_date = datetime.strptime(change_date_str, "%Y-%m-%dT%H:%M:%S%z")
+                    formatted_change_date = change_date.strftime("%d/%m/%Y %H:%M")
+  
+                  # MailAddress
+                  mail_address_from = None
+                  mail_address_cc = []
+                  for mail_info in comment.get('MailAddress', []):
+                    if mail_info.get('Type') == 'From':
+                        mail_address_from = mail_info.get('Address')
+                    elif mail_info.get('Type') == 'CC':
+                        mail_address_cc.append(mail_info.get('Address'))
+
+                  mail_address_cc_str = ', '.join(mail_address_cc) if mail_address_cc else None
+                      
+                  #print(f"MailAddress FROM: {mail_address_from}")
+                  #print(f"MailAddress CC: {mail_address_cc_str}")
+  
+                  # Comments
+                  comments_list = comment.get('Comments', [])
+                  comments_value = comments_list[0].get('Value') if comments_list else None
+
+                  if comments_value:
+                    comments_value = re.sub(r'\r?\n', '<br>', comments_value)
+                    
+                  #print(f"Comments: {comments_value}")
+
+                  # Anexos
+                  attachments = []
+                  for attachment in comment.get('Attachments', []):
+                      attachment_data = {
+                          'Id': attachment.get('Id'),
+                          'Name': attachment.get('Name'),
+                          'Url': attachment.get('Url'),
+                          'MimeType': attachment.get('MimeType'),
+                          'Length': attachment.get('Length'),
+                          'HumanReadableLength': attachment.get('HumanReadableLength'),
+                          'IsNew': attachment.get('IsNew'),
+                          'Public': attachment.get('Public'),
+                          'UserId': attachment.get('UserId'),
+                          'UserName': attachment.get('UserName'),
+                          'ChangeDate': attachment.get('ChangeDate'),
+                          'IsMailBody': attachment.get('IsMailBody'),
+                          'CommentId': attachment.get('CommentId'),
+                      }
+                      attachments.append(attachment_data)
+
+
+                  filtered_comment = {
+                    'IsPublic': comment.get('IsPublic'),
+                    'UserName': comment.get('UserName'),
+                    'UserType': comment.get('UserType'),
+                    'ChangeDate': formatted_change_date,
+                    'MailAddress': mail_address_from,
+                    'MailCC': mail_address_cc_str,
+                    'Comments': comments_value,
+                    'Attachments': attachments
+                  }
+
+                  filtered_comments.append(filtered_comment)
+
+            print(filtered_comments)
+  
+
+            attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments"
+            attachments_response = requests.get(attachments_url, headers=headers)
+
+            if attachments_response.status_code == 200:
+                attachments_data = attachments_response.json()
+            else:
+                attachments_data = []
+
+            ticketId = ticket_details['id']
+            emailsData = function.getEmailsTransitData(fenixToken, ticketId)
+
+            return render_template('ticket_details.html', ticket_details=ticket_details, comments=filtered_comments,
+                                   fenixToken=fenixToken, emailsData=emailsData, attachments=attachments_data)
         else:
-            comments = []
-
-        attachments_url = f"https://api.directtalk.com.br/1.5/ticket/tickets/{ticket_id}/attachments"
-        attachments_response = requests.get(attachments_url, headers=headers)
-
-        if attachments_response.status_code == 200:
-            attachments_data = attachments_response.json()
-        else:
-            attachments_data = []
-
-        fenixToken = function.gen_supdt_basic()
-        ticketId = ticket_details['id']
-        emailsData = function.getEmailsTransitData(fenixToken, ticketId)
-
-        return render_template('ticket_details.html', ticket_details=ticket_details, comments=comments,
-                               fenixToken=fenixToken, emailsData=emailsData, attachments=attachments_data)
+            return f"Erro ao buscar detalhes do ticket. Código de status: {comments_response.status_code}"
     else:
         return "Erro ao buscar detalhes do ticket."
 
 
-# responder ticket
+
+# RESPONDER TICKETS
 @app.route('/responder_ticket/<string:ticket_id>', methods=['POST', 'GET'])
 def responder_ticket(ticket_id):
     if request.method == 'POST':
         content = request.form['new_comment_content']
         anexos = request.files.getlist('new_comment_anexos[]')  # Recebe os anexos enviados
-        print(content)
+        #print(content)
         fenixToken = function.gen_supdt_basic()
 
         attachments_data = []
@@ -205,7 +301,7 @@ def responder_ticket(ticket_id):
         response = requests.put(add_comment_url, json=comment_data, headers=headers)
 
         if response.status_code == 200:
-            print("Ok, alterando o status do ticket")
+            #print("Ok, alterando o status do ticket")
             change_status_url = f"https://app.hiplatform.com/agent/ticket/1.0/ticket/{ticket_id}"
             change_status_data = {"StateId": "85778fdb-fb31-11e4-83fb-122473ed82c1",
                                   "UserId": "d4386622-e980-48a5-9170-870d4e81c58e"}
@@ -219,9 +315,6 @@ def responder_ticket(ticket_id):
                                                   headers=change_status_headers)
 
             return redirect(url_for('ticket_details', ticket_id=ticket_id))
-        else:
-            print(response.status_code)
-            print(response.text)  # Printa resposta
     else:
         return "Método não permitido", 405
 
@@ -239,10 +332,10 @@ def enviar_anexo(anexo, fenix_token):
     if response.status_code == 200:
         return response.json()
     else:
-        print(response.status_code)
+        #print(response.status_code)
         return {}
 
-# criar ticket
+# CRIAR TICKET
 @app.route('/criar_ticket', methods=['POST', 'GET'])
 def criar_ticket():
     token = request.args.get('token')  # Supondo que o token seja passado como parâmetro na URL
@@ -293,7 +386,7 @@ def criar_ticket():
         mensagem.attach(MIMEText(corpo, 'plain'))
 
         if access_files:
-            print("Entrou", access_files)
+            #print("Entrou", access_files)
             file_storage = access_files[0]
             if file_storage.filename.strip() != "":
                 for anexo_file in access_files:
@@ -323,13 +416,13 @@ def criar_ticket():
         # Encerrar a conexão
         servidor_smtp.quit()
 
-        print('E-mail com anexos enviados com sucesso!')
+        #print('E-mail com anexos enviados com sucesso!')
 
-        return redirect(url_for('consulta_ticket'))
+        return redirect(url_for('consulta_ticket', token=token))
 
-    return render_template('criar_ticket.html', form=form)
+    return render_template('criar_ticket.html', form=form, token=token)
 
-
+#BAIXAR ANEXOS
 @app.route('/download_attachment/<string:ticket_id>/<string:attachment_id>', methods=['GET'])
 def download_attachment(ticket_id, attachment_id):
     headers = {

@@ -7,11 +7,16 @@ const createdBy = document.querySelector('.ticket_created');
 const sendTo = document.querySelector('.ticket_mail');
 const returnButton = document.querySelector('#back-button');
 const addNewComment = document.querySelector('#add_new_comment');
-
+const creation_first_msg = document.querySelector("#creation_user_msg");
 
 document.addEventListener("DOMContentLoaded", function() {
   returnButton.textContent = '<<'
-  total_interactions = commentsData.length + 1
+  var total_interactions = 1;
+  for (comment of commentsData){
+    if(comment.IsPublic == true){
+      total_interactions = total_interactions + 1
+    }
+  }
   notification.innerHTML = total_interactions
   addressData = emailsTransitData['MailAddress']
   for (var i = 0; i < addressData.length; i++) {
@@ -23,6 +28,7 @@ document.addEventListener("DOMContentLoaded", function() {
         break;
       case 'From':
         createdBy.innerHTML = "Criado por: " + addressData[i]['Address'];
+        creation_first_msg.innerHTML = addressData[i]['Address']
         break;
     };
   };
@@ -37,15 +43,12 @@ document.addEventListener('DOMContentLoaded', function () {
     attachmentsModal.show();
   });
 
-  // Adiciona um ouvinte de evento para detectar o fechamento do modal
   attachmentsModal._element.addEventListener('hidden.bs.modal', function () {
-    // Limpa o foco após fechar o modal para evitar que a tela permaneça escura
     document.activeElement.blur();
   });
 });
   
 document.addEventListener('DOMContentLoaded', function () {
-      // Inicializa o tooltip se o botão estiver desativado (ticket finalizado)
       var addCommentButton = document.getElementById('add_new_comment');
       if (addCommentButton && addCommentButton.disabled) {
           new bootstrap.Tooltip(addCommentButton);

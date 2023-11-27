@@ -28,16 +28,16 @@ def gen_supdt_basic():
           # Codificar a string para Base64
           base64_encoded = base64.b64encode(basic_string.encode()).decode()
           new_auth = f"Basic " + base64_encoded
-          print(new_auth)
+          #print(new_auth)
 
           # Chamar a função generateFenixToken() e obter o token
           fenix_token = generateFenixToken(new_auth)
           return fenix_token
       else:
-          print("Não foi possível obter o response para gerar o Token Basic.")
+          #print("Não foi possível obter o response para gerar o Token Basic.")
           return None
   except requests.exceptions.HTTPError as err:
-      print(f"HTTP Error: {err}")
+      #print(f"HTTP Error: {err}")
       return None
 
 def generateFenixToken(new_auth):

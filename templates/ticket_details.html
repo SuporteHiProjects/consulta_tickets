@@ -6,42 +6,10 @@
     <script src="../static/details_scripts.js" defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <style>
-      .comments-container {
-          display: flex;
-          flex-direction: column;
-          max-width: 100%; /* Largura máxima para a área de comentários */
-          margin-left: auto; /* Centralizar a área de comentários na tela */
-          margin-right: auto;
-      }
-
-      .comment {
-          margin-bottom: 20px
-          padding-bottom: 20px;
-          border-radius: 8px;
-          overflow: auto; /* Adiciona um overflow:hidden para evitar espaçamentos indesejados */
-      }
-
-      .comment-right {
-          align-self: flex-end;
-          max-width: 85%;
-          background-color: #cee3fb; /* Cor de fundo para comentários originados de e-mails */
-          padding: 10px; /* Adiciona espaçamento interno */
-          margin-bottom: 10px; /* Adiciona margem inferior para separar os blocos */
-      }
-
-      .comment-left {
-          align-self: flex-start;
-          max-width: 85%;
-          background-color: #CCD9DE; /* Cor de fundo para comentários de usuários sem e-mail */
-          padding: 10px; /* Adiciona espaçamento interno */
-          margin-bottom: 10px; /* Adiciona margem inferior para separar os blocos */
-      }
-
-      .comment-meta {
-          font-weight: bold;
-      }
-  </style>
+  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/medium-editor@5.23.3/dist/css/medium-editor.min.css" integrity="sha384-e7Ll4a4lVCZAn/MhHtgfvxbUqI2FUSrIiXidUD5j/WzCUt4g3WnR4NFFW0iy1gVV" crossorigin="anonymous">
+  <script src="https://cdn.jsdelivr.net/npm/medium-editor@5.23.3/dist/js/medium-editor.min.js" integrity="sha384-55JWU3sGonQ21VB5c8ebHJ0fy7KTW4WkWv6uCZ17eLMIq27Izsp6GbNlqp8jX/vS" crossorigin="anonymous"></script>
 </head>
 <body>
     <a href="javascript:history.back()" class="btn btn-outline-info" id="back-button"></a>
@@ -90,8 +58,7 @@
           <ul id="attachmentsList">
             {% for attachment in attachments %}
             <li>
-              <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment['id']) }}"
-                target="_blank">{{ attachment['name'] }}</a>
+              <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment['id']) }}">{{ attachment['name'] }}</a>
             </li>
             {% endfor %}
           </ul>
@@ -106,124 +73,178 @@
   <div class="accordion" id="accordionExample">
       <div class="accordion-item">
           <h2 class="accordion-header">
-              <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse"
-                  data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree">
-                  <strong>Detalhes <span
-                          class="position-absolute top-0 start-25 translate-middle badge rounded-pill bg-danger"
-                          id="total_interactions"></span> </strong>
-              </button>
+            <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" id="detailsButton">
+                <strong>Detalhes <span class="position-absolute top-0 start-25 translate-middle badge rounded-pill bg-danger" id="total_interactions"></span></strong>
+            </button>
+
           </h2>
           <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
               <div class="accordion-body">
                 <div class="comments-container">
-                  <div class="comments-container">
-                      <div class="comment comment-right">
-                          <p class="comment-meta">Em {{ ticket_details.creationDate | safe }},
-                              {{ emailsData.MailAddress[0].Address }} abriu o ticket e escreveu:</p>
-                          <p class="comment-content">{{ ticket_details.description | safe }}</p>
-                      </div>
-
-                      {% for comment in comments %}
-                      <div class="comment
-                          {% if comment.user.email or comment.user.name == 'Supervisor' %}
-                              comment-right
-                          {% elif comment.user.email or comment.user.name == 'Mail Service' %}
-                              comment-right
-                          {% else %}
-                              comment-left
-                          {% endif %}">
-                          <p class="comment-meta">
-                              {% if comment.user.name == 'Supervisor' %}
-                                  Respondido via módulo consumidor em {{ comment.date }}
-                              {% else %}
-                                  Em {{ comment.date }}, {{ comment.user.name }} escreveu:
-                              {% endif %}
-                          </p>
-                          <p class="comment-content">{{ comment.content | replace('\n', '<br>') | safe }}</p>
-                      </div>
-                      {% endfor %}
-                  </div>
-
+                  <ol class="chat">
+                  <li class="self">
+                    <div class="msg">
+                        <div id="creation_user_msg" class="user"><span class="range admin">Externo</span></div>
+                      <p>{{ ticket_details.description | safe }}</p>
+                      <time>{{ ticket_details.creationDate | safe }}</time>
+                    </div>
+                  </li>
+                  {% for comment in comments %}
+                    {% if comment.IsPublic == True and comment.Comments != None %}
+                      {% if comment.UserName == 'Mail Service' %}
+                        <li class="self">
+                          <div class="msg">
+                              <div class="user">Mensagem recebida de {{ comment.MailAddress }} <span class="range admin">Externo</span></div>
+                            
+                            <p> {{ comment.Comments | safe }} </p>
+                            {% if comment.Attachments %}
+                              <div class="attachments">
+                                <p>Anexos:</p>
+                                <ul>
+                                  {% for attachment in comment.Attachments %}
+                                    <li>
+                                      <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment.Id) }}">{{ attachment.Name }}</a>
+                                    </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            {% endif %}
+                            <time>{{ comment.ChangeDate }}</time>
+                          </div>
+                        </li>
+                      {% elif comment.UserName == 'Supervisor' %}
+                        <li class="self">
+                          <div class="msg">
+                              <div class="user">Resposta enviada através do Módulo Consumidor<span class="range admin">Externo</span></div>
+                            <p>{{ comment.Comments | safe }} </p>
+                            {% if comment.Attachments %}
+                              <div class="attachments">
+                                <p>Anexos:</p>
+                                <ul>
+                                  {% for attachment in comment.Attachments %}
+                                    <li>
+                                      <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment.Id) }}">{{ attachment.Name }}</a>
+                                    </li>
+                                  {% endfor %}
+                                </ul>
+                              </div>
+                            {% endif %}
+                            <time> {{ comment.ChangeDate }} </time>
+                          </div>
+                        </li>
+                      {% else %}
+                      <li class="other">
+                        <div class="msg">
+                            <div class="user">{{ comment.UserName }} <span class="range admin">Hi Platform</span></div>
+                          <p>{{ comment.Comments | safe }}</p>
+                          {% if comment.Attachments %}
+                            <div class="attachments">
+                              <p>Anexos</p>
+                              <ul>
+                                {% for attachment in comment.Attachments %}
+                                  <li>
+                                    <a href="{{ url_for('download_attachment', ticket_id=ticket_details['id'], attachment_id=attachment.Id) }}">{{ attachment.Name }}</a>
+                                  </li>
+                                {% endfor %}
+                              </ul>
+                            </div>
+                          {% endif %}
+                          <time>{{ comment.ChangeDate }}</time>
+                        </div>
+                      </li>
+                      {% endif %}
+                    {% endif %}
+                  {% endfor %}
+                  </ol>
+                </div>
                 </div>
               </div>
           </div>
       </div>
   </div>
 
-<button
-    type="button"
-    id="add_new_comment"
-    class="btn btn-success"
-    data-bs-toggle="modal"
-    data-bs-target="#addComment"
-    {% if ticket_details.state.name == 'Finalizado' %}disabled{% endif %}
-    {% if ticket_details.state.name == 'Finalizado' %}
-        data-bs-toggle="tooltip"
-        data-bs-placement="top"
-        title="Não é possível adicionar comentários a tickets finalizados"
-    {% endif %}
->
-    Adicionar comentário
-</button>
-    <!-- Modal -->
-    <div class="modal fade" id="addComment" tabindex="-1" aria-labelledby="addCommentLabel" aria-hidden="true">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h1 class="modal-title fs-5" id="addCommentLabel">Novo comentário</h1>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                </div>
-                <div class="modal-body">
-                    <form method="POST" enctype="multipart/form-data" action="/responder_ticket/{{ ticket_details.id }}">
-                        <div class="first_container_datas">
-                            <!--<span class="input-group-text" id="basic-addon1"><strong>Seu e-mail</strong></span>
-                            <input type="text" class="form-control" name="new_comment_email" placeholder="E-mail" aria-label="email" aria-describedby="basic-addon1">
-                        </div>-->
-                        <div class="second_container_datas">
-                            <span class="input-group-text" id="basic-addon2"><strong>Insira o comentário</strong></span>
-                            <textarea id="textArea_content" class="form-control" name="new_comment_content" aria-label="ticketContent"></textarea>
-                            <input type="file" class="form-control" name="new_comment_anexos[]" id="inputGroupFile01" multiple>
-                        </div>
-                        <div class="modal-footer">
-                            <button type="submit" class="btn btn-outline-success">Adicionar</button>
-                        </div>
-                    </form>
-                </div>
-            </div>
-        </div>
-    </div>
 
+  {% if ticket_details.state.name != 'Finalizado' %}
+      <div class="add-comment-container">
+          <br>
+          <h1 class="fs-5">Adicionar um novo comentário</h1>
+          <form method="POST" enctype="multipart/form-data" action="/responder_ticket/{{ ticket_details.id }}">
+              <div class="comment-input-container">
+                  <textarea id="textArea_content" class="form-control" name="new_comment_content" aria-label="ticketContent"></textarea>
+                  <input type="file" class="form-control" name="new_comment_anexos[]" id="inputGroupFile01" multiple>
+              </div>
+              <div class="comment-button-container">
+                  <button type="submit" id="submitCommentBtn" class="btn btn-outline-success">Enviar</button>
+              </div>
+          </form>
+      </div>
+  {% endif %}
+
+  {% if ticket_details.state.name == 'Finalizado' %}
+      <div class="add-comment-container">
+          <br>
+          <p class="footnote">Não é possível adicionar comentários a tickets que foram marcados como finalizados. Se precisar de assistência adicional, por favor, crie um novo ticket ou reabra o ticket por meio do envio de um e-mail.</p>
+      </div>
+  {% endif %}
+  
+  
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
     <script>
         var ticketsDetails_data =  {{ ticket_details | tojson | safe }};
         var commentsData = {{ comments | tojson | safe }};
         var emailsTransitData = {{ emailsData | tojson | safe }};
     </script>
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          var submitButton = document.getElementById('submitCommentBtn');
+          var form = document.querySelector('form');
 
-<script>
-  document.addEventListener('DOMContentLoaded', function () {
-    var attachmentsButton = document.getElementById('attachmentsButton');
-    var attachmentsModal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
+          form.addEventListener('submit', function (event) {
+              // Desabilitar o botão por 2 segundos
+              submitButton.disabled = true;
+              setTimeout(function () {
+                  submitButton.disabled = false;
+              }, 2000);
 
-    attachmentsButton.addEventListener('click', function () {
-      attachmentsModal.show();
-    });
+              // Modificar o conteúdo do comentário para substituir quebras de linha por <br>
+              var commentContent = document.getElementById('textArea_content').value;
+              var commentContentWithBr = commentContent.replace(/\r?\n/g, "<br>");
 
-    // Adiciona um ouvinte de evento para detectar o fechamento do modal
-    attachmentsModal._element.addEventListener('hidden.bs.modal', function () {
-      // Limpa o foco após fechar o modal para evitar que a tela permaneça escura
-      document.activeElement.blur();
-    });
-  });
-</script>
-<script>
-    document.addEventListener('DOMContentLoaded', function () {
-        // Inicializa o tooltip se o botão estiver desativado (ticket finalizado)
-        var addCommentButton = document.getElementById('add_new_comment');
-        if (addCommentButton && addCommentButton.disabled) {
-            new bootstrap.Tooltip(addCommentButton);
-        }
-    });
-</script>
+              // Adicionar o conteúdo modificado ao campo de comentário
+              var hiddenInput = document.createElement('input');
+              hiddenInput.type = 'hidden';
+              hiddenInput.name = 'new_comment_content_with_br';
+              hiddenInput.value = commentContentWithBr;
+              form.appendChild(hiddenInput);
+
+              // Recarregar a página após 5 segundos
+              setTimeout(function () {
+                  location.reload();
+              }, 5000);
+          });
+      });
+  </script>
+
+
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          var detailsButton = document.getElementById('detailsButton');
+          var collapseThree = document.getElementById('collapseThree');
+
+          // Verifica se há um estado salvo no Local Storage
+          var isDetailsExpanded = localStorage.getItem('detailsExpanded') === 'true';
+
+          // Restaura o estado do detalhe
+          if (isDetailsExpanded) {
+              collapseThree.classList.add('show');
+          }
+
+          // Adiciona um ouvinte de evento ao botão de detalhes
+          detailsButton.addEventListener('click', function () {
+              // Salva o estado do detalhe no Local Storage
+              localStorage.setItem('detailsExpanded', !collapseThree.classList.contains('show'));
+          });
+      });
+  </script>
 </body>
 </html>
