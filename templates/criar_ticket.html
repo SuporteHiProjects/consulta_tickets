@@ -9,6 +9,8 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.5.1/jquery.min.js"></script>
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/js/bootstrap.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
   <style>
       .email-container {
           display: flex;
@@ -31,7 +33,7 @@
           color: red;
           margin-left: 5px;
       }
-    
+
     .flash {
         animation: flashAnimation 0.5s ease-in-out;
     }
@@ -59,7 +61,7 @@
         <div class="second_container_datas">
             <span class="input-group-text" id="basic-addon2"><strong>Detalhes do seu ticket</strong></span>
             <input type="text" class="form-control" name="ticketTitle" placeholder="Assunto" aria-label="ticketTitle" aria-describedby="basic-addon2">
-            <textarea id="textArea_content" class="form-control" name="ticketContent" aria-label="ticketContent"></textarea>
+          <<div id="textArea_content" class="form-control" name="new_comment_content" aria-label="ticketContent"></div>
             <input type="file" class="form-control" name="anexos[]" id="inputGroupFile01" multiple>
         </div>
         <div class="modal-footer">
@@ -141,6 +143,40 @@
 
           ccInput.value = emails.join(', ');
       }
+  </script>
+  <script>
+      document.addEventListener('DOMContentLoaded', function () {
+          var quill = new Quill('#textArea_content', {
+              theme: 'snow',
+              modules: {
+                  toolbar: [
+                      ['bold', 'italic', 'underline', 'strike'],
+                      ['blockquote', 'code-block'],
+                      [{ 'color': [] }, { 'background': [] }],
+                      ['image', 'link', 'video']
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      [{ 'script': 'sub' }, { 'script': 'super' }],
+                      [{ 'indent': '-1' }, { 'indent': '+1' }],
+                      [{ 'direction': 'rtl' }],
+                      [{ 'size': ['small', false, 'large', 'huge'] }],
+                      [{ 'font': [] }],
+                      [{ 'align': [] }],
+                      ['clean'],
+                  ]
+              }
+          });
+
+          // Adicione um ouvinte de evento ao formulário para atualizar a textarea antes do envio
+          var form = document.querySelector('form');
+          form.addEventListener('submit', function () {
+              // Atualize o conteúdo da textarea com o conteúdo formatado do Quill
+              var hiddenInput = document.createElement('input');
+              hiddenInput.type = 'hidden';
+              hiddenInput.name = 'new_comment_content';
+              hiddenInput.value = quill.root.innerHTML;
+              form.appendChild(hiddenInput);
+          });
+      });
   </script>
 </body>
 </html>

@@ -10,32 +10,24 @@ const addNewComment = document.querySelector('#add_new_comment');
 const creation_first_msg = document.querySelector("#creation_user_msg");
 
 document.addEventListener("DOMContentLoaded", function() {
+  showAttachments()
+  validateAccordeonDetails()
+  validateCommentSender()
+  setInteractionsNotifications()
+  checkAndFixEmailsTransitData()
   returnButton.textContent = '<<'
-  var total_interactions = 1;
-  for (comment of commentsData){
-    if(comment.IsPublic == true){
-      total_interactions = total_interactions + 1
-    }
+  document.querySelector('#isPasted').style.whiteSpace = 'inherit';
+  var addCommentButton = document.getElementById('add_new_comment');
+  if (addCommentButton && addCommentButton.disabled) {
+      new bootstrap.Tooltip(addCommentButton);
   }
-  notification.innerHTML = total_interactions
-  addressData = emailsTransitData['MailAddress']
-  for (var i = 0; i < addressData.length; i++) {
-    switch(addressData[i]['Type']){
-      case 'CC':
-        continue
-      case 'To':
-        sendTo.innerHTML = "Enviado para: " + addressData[i]['Address'];
-        break;
-      case 'From':
-        createdBy.innerHTML = "Criado por: " + addressData[i]['Address'];
-        creation_first_msg.innerHTML = addressData[i]['Address']
-        break;
-    };
+  var gmail_contents = document.getElementsByTagName("table");
+  while (gmail_contents[0]) {
+       gmail_contents[0].parentNode.removeChild(gmail_contents[0]);
   };
-  
 });
 
-document.addEventListener('DOMContentLoaded', function () {
+function showAttachments(){
   var attachmentsButton = document.getElementById('attachmentsButton');
   var attachmentsModal = new bootstrap.Modal(document.getElementById('attachmentsModal'));
 
@@ -46,11 +38,64 @@ document.addEventListener('DOMContentLoaded', function () {
   attachmentsModal._element.addEventListener('hidden.bs.modal', function () {
     document.activeElement.blur();
   });
-});
-  
-document.addEventListener('DOMContentLoaded', function () {
-      var addCommentButton = document.getElementById('add_new_comment');
-      if (addCommentButton && addCommentButton.disabled) {
-          new bootstrap.Tooltip(addCommentButton);
-      }
+}
+
+function validateAccordeonDetails() {
+  var detailsButton = document.getElementById('detailsButton');
+  var collapseThree = document.getElementById('collapseThree');
+  var isDetailsExpanded = localStorage.getItem('detailsExpanded') === 'true';
+  if (isDetailsExpanded) {
+      collapseThree.classList.add('show');
+  }
+  detailsButton.addEventListener('click', function () {
+      localStorage.setItem('detailsExpanded', !collapseThree.classList.contains('show'));
   });
+};
+
+function validateCommentSender() {
+  var submitButton = document.getElementById('submitCommentBtn');
+  var form = document.querySelector('form');
+  form.addEventListener('submit', function (event) {
+      submitButton.disabled = true;
+      setTimeout(function () {
+          submitButton.disabled = false;
+      }, 2000);
+      var commentContent = document.getElementById('textArea_content').value;
+      var commentContentWithBr = commentContent.replace(/\r?\n/g, "<br>");
+      var hiddenInput = document.createElement('input');
+      hiddenInput.type = 'hidden';
+      hiddenInput.name = 'new_comment_content_with_br';
+      hiddenInput.value = commentContentWithBr;
+      form.appendChild(hiddenInput);
+      setTimeout(function () {
+          location.reload();
+      }, 9000);
+  });
+};
+
+function setInteractionsNotifications() {
+  var total_interactions = 1;
+  for (comment of commentsData) {
+    if(comment.IsPublic == true) {
+      total_interactions = total_interactions + 1;
+    };
+  };
+  notification.innerHTML = total_interactions;
+};
+
+function checkAndFixEmailsTransitData() {
+  addressData = emailsTransitData['MailAddress']
+  for (var i = 0; i < addressData.length; i++) {
+    switch(addressData[i]['Type']){
+      case 'CC':
+        continue;
+      case 'To':
+        sendTo.innerHTML = '<i class="fa-regular fa-envelope"></i> Enviado para: ' + addressData[i]['Address'];
+        break;
+      case 'From':
+        createdBy.innerHTML = '<i class="fa-solid fa-address-card"></i> Criado por: ' + addressData[i]['Address'];
+        creation_first_msg.innerHTML = 'Ticket criado por: ' + addressData[i]['Address'];
+        break;
+    }
+  }
+}

@@ -6,6 +6,11 @@ import pytz
 import requests
 import os
 import base64
+import random
+import string
+import smtplib
+from email.mime.text import MIMEText
+
 
 my_secret = os.environ['Authorization Inbox']
 
@@ -128,3 +133,52 @@ def slice_tickets(ticketsData):
   ticketsData[0]['aguardando_resposta']['total'] = len(ticketsData[0]['aguardando_resposta']['data'])
   ticketsData[0]['finalizados']['total'] = len(ticketsData[0]['finalizados']['data'])
   return ticketsData
+
+def generate_pin():
+  pin = random.randint(10000000, 99999999)
+  return str(pin)
+
+def send_email(email):
+  # Geração do PIN aleatório
+  pin = generate_pin()
+
+  # Configurações de e-mail
+  remetente = 'servicedesk@hiplatform.com'
+  senha = 'riilmqnupaofwavu'
+  destinatario = email
+  reply_to = 'no-reply@directtalk.com'
+
+  # Criar o objeto de mensagem
+  mensagem_html = f'''<html>
+    <body>
+        <div style="max-width: 600px; margin: 0 auto; padding: 20px; border: 1px solid #ccc; border-radius: 5px; background-color: #f9f9f9;">
+            <img src="https://files.directtalk.com.br/1.0/api/file/public/98318821-47c9-4d53-a6fd-4aefe26c4cf5/content-inline" alt="Logo Hi Platform" width="200" style="display: block; margin: 0 auto;">
+            <p style="margin-bottom: 10px;">Caro usuário,</p>
+            <p style="margin-bottom: 10px;">Você acabou de receber um código PIN de acesso.</p>
+            <p style="margin-bottom: 10px;">O código PIN aleatório é: <strong style="color: #0056b3; display: inline-block; padding: 5px 10px; margin-left: 5px; border-radius: 5px; background-color: #0056b3; color: #fff;">{pin}</strong></p>
+            <p style="margin-bottom: 10px;">Para confirmar seu login, por favor, digite o código PIN recebido na plataforma Hi.</p>
+            <p>Atenciosamente,</p>
+            <p style="margin-top: 20px; color: #666;">Equipe Hi Platform</p>
+        </div>
+    </body>
+</html>'''
+
+  mensagem = MIMEText(mensagem_html, 'html')
+
+  mensagem['From'] = remetente
+  mensagem['To'] = destinatario
+  mensagem['Reply-To'] = reply_to
+  mensagem['Subject'] = "Aqui está o seu PIN de acesso"
+
+
+  # Conectar ao servidor SMTP
+  servidor_smtp = smtplib.SMTP('smtp.gmail.com', 587)
+  servidor_smtp.starttls()
+  servidor_smtp.login(remetente, senha)
+
+  # Enviar o e-mail
+  servidor_smtp.sendmail(remetente, destinatario, mensagem.as_string())
+
+  # Encerrar a conexão
+  servidor_smtp.quit()
+  return pin

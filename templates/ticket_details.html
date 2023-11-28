@@ -3,13 +3,13 @@
 <head>
     <title>Detalhes do Ticket</title>
     <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='styles.css') }}">
-    <script src="../static/details_scripts.js" defer></script>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-T3c6CoIi6uLrA9TneNEoa7RxnatzjcDSCmG1MXxSR1GAsXEV/Dwwykc2MPK8M2HN" crossorigin="anonymous">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-  <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/medium-editor@5.23.3/dist/css/medium-editor.min.css" integrity="sha384-e7Ll4a4lVCZAn/MhHtgfvxbUqI2FUSrIiXidUD5j/WzCUt4g3WnR4NFFW0iy1gVV" crossorigin="anonymous">
-  <script src="https://cdn.jsdelivr.net/npm/medium-editor@5.23.3/dist/js/medium-editor.min.js" integrity="sha384-55JWU3sGonQ21VB5c8ebHJ0fy7KTW4WkWv6uCZ17eLMIq27Izsp6GbNlqp8jX/vS" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script src="../static/details_scripts.js" defer></script>
+  <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
+  <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
 </head>
 <body>
     <a href="javascript:history.back()" class="btn btn-outline-info" id="back-button"></a>
@@ -38,13 +38,14 @@
                     <div class="ticket_reopened">{{ ticket_details.state.name }}</div>
                     {% endif %}
                     <div class="ticket_sla"><i class="fa-solid fa-clock-rotate-left"></i> Prazo: {{ ticket_details.deadline }}</div>
+                  <button type="button" id="attachmentsButton" class="btn btn-outline-primary mb-3 w-auto">
+                    <i class="fas fa-file-image"></i>
+                  </button>
+
                 </div>
             </div>
         </div>
     </div>
-
-<button type="button" id="attachmentsButton" class="btn btn-outline-primary mb-3 w-auto">Anexos</button>
-
       <div class="modal fade" id="attachmentsModal" tabindex="-1" aria-labelledby="attachmentsModalLabel"
     aria-hidden="true">
     <div class="modal-dialog">
@@ -54,7 +55,6 @@
           <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
         </div>
         <div class="modal-body">
-          <!-- Lista de anexos -->
           <ul id="attachmentsList">
             {% for attachment in attachments %}
             <li>
@@ -69,14 +69,12 @@
       </div>
     </div>
   </div>
-
   <div class="accordion" id="accordionExample">
       <div class="accordion-item">
           <h2 class="accordion-header">
             <button class="accordion-button collapsed" type="button" data-bs-toggle="collapse" data-bs-target="#collapseThree" aria-expanded="false" aria-controls="collapseThree" id="detailsButton">
                 <strong>Detalhes <span class="position-absolute top-0 start-25 translate-middle badge rounded-pill bg-danger" id="total_interactions"></span></strong>
             </button>
-
           </h2>
           <div id="collapseThree" class="accordion-collapse collapse" data-bs-parent="#accordionExample">
               <div class="accordion-body">
@@ -95,7 +93,6 @@
                         <li class="self">
                           <div class="msg">
                               <div class="user">Mensagem recebida de {{ comment.MailAddress }} <span class="range admin">Externo</span></div>
-                            
                             <p> {{ comment.Comments | safe }} </p>
                             {% if comment.Attachments %}
                               <div class="attachments">
@@ -162,15 +159,13 @@
           </div>
       </div>
   </div>
-
-
   {% if ticket_details.state.name != 'Finalizado' %}
       <div class="add-comment-container">
           <br>
           <h1 class="fs-5">Adicionar um novo comentário</h1>
           <form method="POST" enctype="multipart/form-data" action="/responder_ticket/{{ ticket_details.id }}">
               <div class="comment-input-container">
-                  <textarea id="textArea_content" class="form-control" name="new_comment_content" aria-label="ticketContent"></textarea>
+                <div id="textArea_content" class="form-control" name="new_comment_content" aria-label="ticketContent"></div>
                   <input type="file" class="form-control" name="new_comment_anexos[]" id="inputGroupFile01" multiple>
               </div>
               <div class="comment-button-container">
@@ -179,16 +174,12 @@
           </form>
       </div>
   {% endif %}
-
-  {% if ticket_details.state.name == 'Finalizado' %}
+    {% if ticket_details.state.name == 'Finalizado' %}
       <div class="add-comment-container">
           <br>
           <p class="footnote">Não é possível adicionar comentários a tickets que foram marcados como finalizados. Se precisar de assistência adicional, por favor, crie um novo ticket ou reabra o ticket por meio do envio de um e-mail.</p>
       </div>
-  {% endif %}
-  
-  
-    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js" integrity="sha384-C6RzsynM9kWDrMNeT87bh95OGNyZPhcTNXj1NW7RuBCsyN/o0jlpcV8Qyq46cDfL" crossorigin="anonymous"></script>
+    {% endif %}
     <script>
         var ticketsDetails_data =  {{ ticket_details | tojson | safe }};
         var commentsData = {{ comments | tojson | safe }};
@@ -196,53 +187,35 @@
     </script>
   <script>
       document.addEventListener('DOMContentLoaded', function () {
-          var submitButton = document.getElementById('submitCommentBtn');
+          var quill = new Quill('#textArea_content', {
+              theme: 'snow',
+              modules: {
+                  toolbar: [
+                      ['bold', 'italic', 'underline', 'strike'],
+                      ['blockquote', 'code-block'],
+                      [{ 'color': [] }, { 'background': [] }],
+                      ['image', 'link', 'video']
+                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                      [{ 'script': 'sub' }, { 'script': 'super' }],
+                      [{ 'indent': '-1' }, { 'indent': '+1' }],
+                      [{ 'direction': 'rtl' }],
+                      [{ 'size': ['small', false, 'large', 'huge'] }],
+                      [{ 'font': [] }],
+                      [{ 'align': [] }],
+                      ['clean'],
+                  ]
+              }
+          });
+
+          // Adicione um ouvinte de evento ao formulário para atualizar a textarea antes do envio
           var form = document.querySelector('form');
-
-          form.addEventListener('submit', function (event) {
-              // Desabilitar o botão por 2 segundos
-              submitButton.disabled = true;
-              setTimeout(function () {
-                  submitButton.disabled = false;
-              }, 2000);
-
-              // Modificar o conteúdo do comentário para substituir quebras de linha por <br>
-              var commentContent = document.getElementById('textArea_content').value;
-              var commentContentWithBr = commentContent.replace(/\r?\n/g, "<br>");
-
-              // Adicionar o conteúdo modificado ao campo de comentário
+          form.addEventListener('submit', function () {
+              // Atualize o conteúdo da textarea com o conteúdo formatado do Quill
               var hiddenInput = document.createElement('input');
               hiddenInput.type = 'hidden';
-              hiddenInput.name = 'new_comment_content_with_br';
-              hiddenInput.value = commentContentWithBr;
+              hiddenInput.name = 'new_comment_content';
+              hiddenInput.value = quill.root.innerHTML;
               form.appendChild(hiddenInput);
-
-              // Recarregar a página após 5 segundos
-              setTimeout(function () {
-                  location.reload();
-              }, 5000);
-          });
-      });
-  </script>
-
-
-  <script>
-      document.addEventListener('DOMContentLoaded', function () {
-          var detailsButton = document.getElementById('detailsButton');
-          var collapseThree = document.getElementById('collapseThree');
-
-          // Verifica se há um estado salvo no Local Storage
-          var isDetailsExpanded = localStorage.getItem('detailsExpanded') === 'true';
-
-          // Restaura o estado do detalhe
-          if (isDetailsExpanded) {
-              collapseThree.classList.add('show');
-          }
-
-          // Adiciona um ouvinte de evento ao botão de detalhes
-          detailsButton.addEventListener('click', function () {
-              // Salva o estado do detalhe no Local Storage
-              localStorage.setItem('detailsExpanded', !collapseThree.classList.contains('show'));
           });
       });
   </script>

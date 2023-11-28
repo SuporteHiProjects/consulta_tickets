@@ -48,12 +48,26 @@ def login():
             }
             url = "https://tenant.directtalk.com.br/1.0/tenants?filter=dts1"
             response = requests.get(url, headers=headers)
+
+            # Se o login estiver OK
             if response.status_code == 200:
-                user_data = {'plataforma': plataforma, 'login': login, 'email': email, 'empresa_codigo': empresa_codigo, 'senha': senha}
-                token = generate_token(user_data)
-                return redirect(url_for('consulta_ticket', token=token))
+              print(login, email)
+
+              #Valida de login e e-mails são Iguais
+              if login != email:
+                  pin = function.send_email(email)
+                  user_data = {'pin': pin, 'plataforma': plataforma, 'login': login, 'email': email, 'empresa_codigo': empresa_codigo, 'senha': senha}
+                  token = generate_token(user_data)
+
+                # Se for diferente, chama rota de validação.
+                  return redirect(url_for('insert_pin', token=token))
+
+              # Se for igual, segue fluxo padrão.
+              user_data = {'plataforma': plataforma, 'login': login, 'email': email, 'empresa_codigo': empresa_codigo, 'senha': senha}
+              token = generate_token(user_data)
+              return redirect(url_for('consulta_ticket', token=token))
             else:
-                return render_template('login.html', message="Login inválido. Tente novamente.")
+              return render_template('login.html', message="Login inválido. Tente novamente.")
 
         elif plataforma == "HiFlow":
             empresa_codigo = data.get('empresa_codigo')
@@ -382,8 +396,8 @@ def criar_ticket():
         mensagem['Cc'] = ', '.join(cc)
 
         # Corpo do e-mail
-        corpo = ticketContent
-        mensagem.attach(MIMEText(corpo, 'plain'))
+        corpo = request.form['new_comment_content']
+        mensagem.attach(MIMEText(corpo, 'html'))
 
         if access_files:
             #print("Entrou", access_files)
@@ -458,6 +472,44 @@ def download_attachment(ticket_id, attachment_id):
             return "Error: Attachment not found."
     else:
         return "Error downloading attachment."
+
+
+@app.route('/valida_pin', methods=['POST'])
+def valida_pin():
+    token = request.args.get('token')
+
+    try:
+        user_data = jwt.decode(request.form['token'], app.config['SECRET_KEY'], algorithms=['HS256'])
+
+        plataforma = user_data.get('plataforma')
+        login = user_data.get('login')
+        email = user_data.get('email')
+        empresa_codigo = user_data.get('empresa_codigo')
+        senha = user_data.get('senha')
+        pin = user_data.get('pin')
+
+        pin_input = request.form.get('pin_input')
+        print(pin_input)
+
+        if pin == pin_input:
+            return jsonify({'redirect': url_for('consulta_ticket', token=request.form['token'])})
+        else:
+            return jsonify({'message': "O PIN digitado não é igual ao PIN fornecido por e-mail."}), 400
+    except jwt.ExpiredSignatureError:
+        return jsonify({'message': 'Token expirado.'}), 401
+    except jwt.InvalidTokenError:
+        return jsonify({'message': 'Token inválido.'}), 401
+
+
+@app.route('/insert_pin', methods=['GET', 'POST'])
+def insert_pin():
+    token = request.args.get('token')
+
+    if not token:
+        return jsonify({'message': 'Token não fornecido'}), 401
+
+    return render_template('insert_pin.html', token=token)
+
 
 
 if __name__ == "__main__":
