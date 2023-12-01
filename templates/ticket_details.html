@@ -7,9 +7,9 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/all.min.css">
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="../static/details_scripts.js" defer></script>
   <link href="https://cdn.quilljs.com/1.3.6/quill.snow.css" rel="stylesheet">
   <script src="https://cdn.quilljs.com/1.3.6/quill.js"></script>
+  <script src="../static/details_scripts.js" defer></script>
 </head>
 <body>
     <a href="javascript:history.back()" class="btn btn-outline-info" id="back-button"></a>
@@ -187,37 +187,47 @@
     </script>
   <script>
       document.addEventListener('DOMContentLoaded', function () {
-          var quill = new Quill('#textArea_content', {
-              theme: 'snow',
-              modules: {
-                  toolbar: [
-                      ['bold', 'italic', 'underline', 'strike'],
-                      ['blockquote', 'code-block'],
-                      [{ 'color': [] }, { 'background': [] }],
-                      ['image', 'link', 'video']
-                      [{ 'list': 'ordered' }, { 'list': 'bullet' }],
-                      [{ 'script': 'sub' }, { 'script': 'super' }],
-                      [{ 'indent': '-1' }, { 'indent': '+1' }],
-                      [{ 'direction': 'rtl' }],
-                      [{ 'size': ['small', false, 'large', 'huge'] }],
-                      [{ 'font': [] }],
-                      [{ 'align': [] }],
-                      ['clean'],
-                  ]
-              }
-          });
+          // Mova a declaração da variável textAreaContent para dentro desta função
+          var textAreaContent = document.getElementById('textArea_content');
 
-          // Adicione um ouvinte de evento ao formulário para atualizar a textarea antes do envio
-          var form = document.querySelector('form');
-          form.addEventListener('submit', function () {
-              // Atualize o conteúdo da textarea com o conteúdo formatado do Quill
-              var hiddenInput = document.createElement('input');
-              hiddenInput.type = 'hidden';
-              hiddenInput.name = 'new_comment_content';
-              hiddenInput.value = quill.root.innerHTML;
-              form.appendChild(hiddenInput);
-          });
+          if (textAreaContent) {
+              var quill = new Quill(textAreaContent, {
+                  theme: 'snow',
+                  modules: {
+                      toolbar: [
+                          ['bold', 'italic', 'underline', 'strike'],
+                          ['blockquote', 'code-block'],
+                          [{ 'color': [] }, { 'background': [] }],
+                          ['image', 'link', 'video'],
+                          [{ 'list': 'ordered' }, { 'list': 'bullet' }],
+                          [{ 'script': 'sub' }, { 'script': 'super' }],
+                          [{ 'indent': '-1' }, { 'indent': '+1' }],
+                          [{ 'direction': 'rtl' }],
+                          [{ 'size': ['small', false, 'large', 'huge'] }],
+                          [{ 'font': [] }],
+                          [{ 'align': [] }],
+                          ['clean'],
+                      ]
+                  }
+              });
+
+              // Adicione um ouvinte de evento ao formulário para atualizar a textarea antes do envio
+              var form = document.querySelector('form');
+
+              // Verifique se o formulário foi encontrado antes de adicionar o evento
+              if (form) {
+                  form.addEventListener('submit', function (event) {
+                      // Atualize o conteúdo da textarea com o conteúdo formatado do Quill
+                      var hiddenInput = document.createElement('input');
+                      hiddenInput.type = 'hidden';
+                      hiddenInput.name = 'new_comment_content';
+                      hiddenInput.value = quill.root.innerHTML;
+                      form.appendChild(hiddenInput);
+                  });
+              }
+          }
       });
   </script>
+
 </body>
 </html>

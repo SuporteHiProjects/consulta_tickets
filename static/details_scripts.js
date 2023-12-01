@@ -55,11 +55,9 @@ function validateAccordeonDetails() {
 function validateCommentSender() {
   var submitButton = document.getElementById('submitCommentBtn');
   var form = document.querySelector('form');
-  form.addEventListener('submit', function (event) {
-      submitButton.disabled = true;
-      setTimeout(function () {
-          submitButton.disabled = false;
-      }, 2000);
+
+  if (form) {
+    form.addEventListener('submit', function (event) {
       var commentContent = document.getElementById('textArea_content').value;
       var commentContentWithBr = commentContent.replace(/\r?\n/g, "<br>");
       var hiddenInput = document.createElement('input');
@@ -67,11 +65,17 @@ function validateCommentSender() {
       hiddenInput.name = 'new_comment_content_with_br';
       hiddenInput.value = commentContentWithBr;
       form.appendChild(hiddenInput);
+
+      submitButton.disabled = true;
+
       setTimeout(function () {
-          location.reload();
+        submitButton.disabled = false;
+        location.reload();
       }, 9000);
-  });
-};
+    });
+  }
+}
+
 
 function setInteractionsNotifications() {
   var total_interactions = 1;
